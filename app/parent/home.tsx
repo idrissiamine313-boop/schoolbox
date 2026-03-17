@@ -253,22 +253,41 @@ export default function ParentHome() {
   // ✅ تسجيل Push Token
   async function registerPushToken() {
   try {
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== 'granted') return;
+    console.log('🔔 Starting push token registration...');
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    console.log('🔔 Existing permission:', existingStatus);
+    
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    
+    console.log('🔔 Final permission:', finalStatus);
+    if (finalStatus !== 'granted') {
+      console.log('🔔 Permission denied!');
+      return;
+    }
     
     const token = (await Notifications.getExpoPushTokenAsync({
-      projectId: 'ضع هنا projectId ديالك من app.json'
+      projectId: '2d296a5c-fc86-4be4-9271-d02f413ec9d3'
     })).data;
     
-    console.log('PUSH TOKEN:', token);
+    console.log('🔔 Token:', token);
     
-    if (!appUser?.id || !token) return;
-    await supabase.from('push_tokens').upsert(
+    if (!appUser?.id || !token) {
+      console.log('🔔 No appUser or token!', { userId: appUser?.id, token });
+      return;
+    }
+    
+    const { error } = await supabase.from('push_tokens').upsert(
       { user_id: appUser.id, token },
       { onConflict: 'user_id' }
     );
+    
+    console.log('🔔 Saved to DB:', error ? error.message : 'SUCCESS');
   } catch (e) {
-    console.error('Push token error:', e);
+    console.error('🔔 Push token error:', e);
   }
 }
 
