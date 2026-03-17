@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { supabase } from './supabase';
 
 export async function sendPushNotification(
@@ -6,6 +7,9 @@ export async function sendPushNotification(
   body: string,
   data: any = {}
 ) {
+  // ما كيخدمش في Expo Go
+  if (Constants.appOwnership === 'expo') return;
+  
   try {
     const { data: tokens, error } = await supabase
       .from('push_tokens')

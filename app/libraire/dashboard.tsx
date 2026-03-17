@@ -450,7 +450,7 @@ export default function LibraireDashboard() {
       <View style={s.headerTop}>
         <View style={s.headerLeft}>
           <View style={s.logoBox}>
-            {sbLogo ? <Image source={{ uri: sbLogo }} style={s.logoImg} resizeMode="contain" /> : <Image source={require('../../assets/images/logo.jpg')} style={s.logoImg} resizeMode="contain" />}
+            {sbLogo ? <Image source={{ uri: sbLogo }} style={s.logoImg} resizeMode="contain" /> : <Image source={require('../../assets/images/logo.png')} style={s.logoImg} resizeMode="contain" />}
           </View>
           <View style={s.headerTitles}>
             <Text style={s.sbName}>SchoolBox</Text>

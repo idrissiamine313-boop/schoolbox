@@ -383,7 +383,7 @@ export default function ParentHome() {
             <View style={s.logoWrapper}>
               {sbLogo
                 ? <Image source={{ uri: sbLogo }} style={s.logoImg} resizeMode="contain" />
-                : <Image source={require('../../assets/images/logo.jpg')} style={s.logoImg} resizeMode="contain" />
+                : <Image source={require('../../assets/images/logo.png')} style={s.logoImg} resizeMode="contain" />
               }
             </View>
             <View style={s.schoolTitleWrap}>

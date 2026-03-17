@@ -116,7 +116,7 @@ function StudentCard({ student, parentCode }: { student: any; parentCode: any })
   return (
     <View style={cardStyles.card}>
       <View style={cardStyles.header}>
-        <Image source={require('../../assets/images/logo.jpg')} style={cardStyles.sbLogo} />
+        <Image source={require('../../assets/images/logo.png')} style={cardStyles.sbLogo} />
         <View style={cardStyles.headerCenter}>
           <Text style={cardStyles.headerTitle}>SchoolBox</Text>
           <Text style={cardStyles.headerSub}>Carte d'accès parent</Text>

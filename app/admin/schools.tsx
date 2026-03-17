@@ -270,7 +270,7 @@ export default function AdminSchools() {
             <IconBack size={20} color="white" />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
-            <Image source={require('../../assets/images/logo.jpg')} style={styles.sbLogo} />
+            <Image source={require('../../assets/images/logo.png')} style={styles.sbLogo} />
             <View>
               <Text style={styles.headerTitle}>Écoles</Text>
               <Text style={styles.headerSub}>{schools.length} établissements</Text>
