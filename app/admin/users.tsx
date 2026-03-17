@@ -1,17 +1,17 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    RefreshControl,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Svg, { Circle, Line, Path, Polyline, Rect } from 'react-native-svg';
 import { supabase } from '../../lib/supabase';
@@ -88,29 +88,38 @@ export default function AdminUsers() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'admin'|'libraire'|'livreur'>('admin');
   const [libraryId, setLibraryId] = useState('');
+  const [linkedUserType, setLinkedUserType] = useState<'libraire'|'admin'>('libraire');
+  const [linkedUsers, setLinkedUsers] = useState<any[]>([]);
+  const [selLinkedUser, setSelLinkedUser] = useState<any>(null);
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
     setRefreshing(true);
-    const [usersRes, libsRes] = await Promise.all([
+    const [usersRes, libsRes, linkedRes] = await Promise.all([
       supabase.from('app_users').select('*, library:libraries(name)').order('created_at', { ascending: false }),
       supabase.from('libraries').select('id, name').eq('is_active', true),
+      supabase.from('app_users').select('id, full_name, role, library_id').in('role', ['libraire', 'admin']).eq('is_active', true),
     ]);
     setUsers(usersRes.data || []);
     setLibraries(libsRes.data || []);
+    setLinkedUsers(linkedRes.data || []);
     setRefreshing(false);
   }
 
   function openAdd() {
     setEditUser(null); setFullName(''); setEmail(''); setPhone(''); setPassword('');
-    setRole(activeTab); setLibraryId(''); setShowPassword(false); setShowModal(true);
+    setRole(activeTab); setLibraryId('');
+    setLinkedUserType('libraire'); setSelLinkedUser(null);
+    setShowPassword(false); setShowModal(true);
   }
 
   function openEdit(user: any) {
     setEditUser(user); setFullName(user.full_name||''); setEmail(user.email||'');
     setPhone(user.phone||''); setPassword(''); setRole(user.role);
-    setLibraryId(user.library_id||''); setShowPassword(false); setShowModal(true);
+    setLibraryId(user.library_id||'');
+    setLinkedUserType('libraire'); setSelLinkedUser(null);
+    setShowPassword(false); setShowModal(true);
   }
 
   async function saveUser() {
@@ -118,27 +127,43 @@ export default function AdminUsers() {
     if (!email.trim()) { Alert.alert('Erreur',"Entrez l'email"); return; }
     if (!editUser && !password) { Alert.alert('Erreur','Entrez le mot de passe'); return; }
     if (!editUser && password.length < 6) { Alert.alert('Erreur','Minimum 6 caractères'); return; }
-    if ((role==='libraire'||role==='livreur') && !libraryId) { Alert.alert('Erreur','Choisissez une librairie'); return; }
+    if (role === 'libraire' && !libraryId) { Alert.alert('Erreur', 'Choisissez une librairie'); return; }
+    if (role === 'livreur' && !selLinkedUser) { Alert.alert('Erreur', 'Choisissez un libraire ou admin'); return; }
     setLoading(true);
     try {
+      // للليفرور: إذا مربوط مع libraire → library_id = library_id ديالو
+      //           إذا مربوط مع admin → library_id = null + linked_admin_id = id ديال admin
+      const livreurLibraryId = role === 'livreur'
+        ? (linkedUserType === 'libraire' ? selLinkedUser?.library_id || null : null)
+        : (role === 'libraire' ? libraryId : null);
+      const livreurAdminId = role === 'livreur' && linkedUserType === 'admin'
+        ? selLinkedUser?.id || null
+        : null;
+
       if (editUser) {
-        const { error } = await supabase.from('app_users').update({
+        const updateData: any = {
           full_name: fullName.trim(),
           phone: phone.trim() || null,
           role,
-          library_id: (role==='libraire'||role==='livreur') ? libraryId : null,
-        }).eq('id', editUser.id);
+          library_id: livreurLibraryId,
+        };
+        if (role === 'livreur') updateData.linked_admin_id = livreurAdminId;
+        const { error } = await supabase.from('app_users').update(updateData).eq('id', editUser.id);
         if (error) { Alert.alert('Erreur', error.message); setLoading(false); return; }
       } else {
-        const { error } = await supabase.rpc('create_app_user', {
+        const { data: newUser, error } = await supabase.rpc('create_app_user', {
           p_email: email.trim().toLowerCase(),
           p_password: password,
           p_full_name: fullName.trim(),
           p_role: role,
           p_phone: phone.trim() || null,
-          p_library_id: (role==='libraire'||role==='livreur') ? libraryId : null,
+          p_library_id: livreurLibraryId,
         });
         if (error) { Alert.alert('Erreur', error.message); setLoading(false); return; }
+        // إذا livreur مربوط مع admin — زيد linked_admin_id
+        if (role === 'livreur' && linkedUserType === 'admin' && livreurAdminId && newUser) {
+          await supabase.from('app_users').update({ linked_admin_id: livreurAdminId }).eq('id', newUser);
+        }
       }
       setShowModal(false);
       loadData();
@@ -174,14 +199,12 @@ export default function AdminUsers() {
 
       <View style={s.header}>
         <View style={s.dec1}/><View style={s.dec2}/>
-        <View style={s.headerRow}>
-          <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><IconBack/></TouchableOpacity>
-          <View style={{flex:1}}>
-            <Text style={s.headerTitle}>Utilisateurs</Text>
-            <Text style={s.headerSub}>{users.length} comptes</Text>
-          </View>
-          <TouchableOpacity style={s.addBtn} onPress={openAdd}><IconPlus/></TouchableOpacity>
-        </View>
+        <TouchableOpacity 
+  style={[s.addBtn, {backgroundColor: '#10b981'}]} 
+  onPress={() => router.push('/admin/parents' as any)} 
+>
+  <Text style={{color: 'white', fontWeight: 'bold', fontSize: 12}}>PDF</Text>
+</TouchableOpacity>
 
         <View style={s.statsRow}>
           {(Object.keys(ROLES) as Array<keyof typeof ROLES>).map(r => (
@@ -279,7 +302,7 @@ export default function AdminUsers() {
                 {(Object.keys(ROLES) as Array<keyof typeof ROLES>).map(r => {
                   const active = role===r;
                   return (
-                    <TouchableOpacity key={r} style={[s.roleChip, active&&{backgroundColor:ROLES[r].color,borderColor:ROLES[r].color}]} onPress={()=>{setRole(r);setLibraryId('');}}>
+                    <TouchableOpacity key={r} style={[s.roleChip, active&&{backgroundColor:ROLES[r].color,borderColor:ROLES[r].color}]} onPress={()=>{setRole(r);setLibraryId('');setSelLinkedUser(null);}}>
                       {React.createElement(ROLES[r].icon,{size:18,color:active?'white':ROLES[r].color})}
                       <Text style={[s.roleChipTxt,active&&{color:'white'}]}>{ROLES[r].label}</Text>
                     </TouchableOpacity>
@@ -306,17 +329,63 @@ export default function AdminUsers() {
               {password.length>0&&password.length<6&&<Text style={s.passWarn}>⚠️ Minimum 6 caractères</Text>}
               {password.length>=6&&<Text style={s.passOk}>✓ Mot de passe valide</Text>}
 
-              {(role==='libraire'||role==='livreur')&&(
+              {/* ── LIBRAIRE: اختيار ليبراري ── */}
+              {role === 'libraire' && (
                 <>
                   <Text style={s.lbl}>LIBRAIRIE *</Text>
-                  {libraries.length===0?(
+                  {libraries.length === 0 ? (
                     <View style={s.noLib}><Text style={s.noLibTxt}>⚠️ Créez d'abord une librairie</Text></View>
-                  ):(
+                  ) : (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                      <View style={{flexDirection:'row',gap:8,paddingVertical:4}}>
-                        {libraries.map(lib=>(
-                          <TouchableOpacity key={lib.id} style={[s.libChip,libraryId===lib.id&&{backgroundColor:ROLES[role].color,borderColor:ROLES[role].color}]} onPress={()=>setLibraryId(lib.id)}>
-                            <Text style={[s.libChipTxt,libraryId===lib.id&&{color:'white'}]}>{lib.name}</Text>
+                      <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 4 }}>
+                        {libraries.map(lib => (
+                          <TouchableOpacity key={lib.id}
+                            style={[s.libChip, libraryId === lib.id && { backgroundColor: ROLES['libraire'].color, borderColor: ROLES['libraire'].color }]}
+                            onPress={() => setLibraryId(lib.id)}>
+                            <Text style={[s.libChipTxt, libraryId === lib.id && { color: 'white' }]}>{lib.name}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </ScrollView>
+                  )}
+                </>
+              )}
+
+              {/* ── LIVREUR: اختيار libraire أو admin ── */}
+              {role === 'livreur' && (
+                <>
+                  <Text style={s.lbl}>LIER AVEC</Text>
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                    <TouchableOpacity
+                      style={[s.roleChip, linkedUserType === 'libraire' && { backgroundColor: ROLES['libraire'].color, borderColor: ROLES['libraire'].color }]}
+                      onPress={() => { setLinkedUserType('libraire'); setSelLinkedUser(null); setLibraryId(''); }}>
+                      <Text style={[s.roleChipTxt, linkedUserType === 'libraire' && { color: 'white' }]}>📚 Libraire</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[s.roleChip, linkedUserType === 'admin' && { backgroundColor: NAV, borderColor: NAV }]}
+                      onPress={() => { setLinkedUserType('admin'); setSelLinkedUser(null); setLibraryId(''); }}>
+                      <Text style={[s.roleChipTxt, linkedUserType === 'admin' && { color: 'white' }]}>🛡️ Admin</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={s.lbl}>{linkedUserType === 'libraire' ? 'CHOISIR LIBRAIRE' : 'CHOISIR ADMIN'} *</Text>
+                  {linkedUsers.filter(u => u.role === linkedUserType).length === 0 ? (
+                    <View style={s.noLib}>
+                      <Text style={s.noLibTxt}>⚠️ Aucun {linkedUserType === 'libraire' ? 'libraire' : 'admin'} disponible</Text>
+                    </View>
+                  ) : (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 4 }}>
+                        {linkedUsers.filter(u => u.role === linkedUserType).map(u => (
+                          <TouchableOpacity key={u.id}
+                            style={[s.libChip, selLinkedUser?.id === u.id && {
+                              backgroundColor: linkedUserType === 'libraire' ? ROLES['libraire'].color : NAV,
+                              borderColor: linkedUserType === 'libraire' ? ROLES['libraire'].color : NAV,
+                            }]}
+                            onPress={() => { setSelLinkedUser(u); setLibraryId(u.library_id || ''); }}>
+                            <Text style={[s.libChipTxt, selLinkedUser?.id === u.id && { color: 'white' }]}>
+                              {u.full_name}
+                            </Text>
                           </TouchableOpacity>
                         ))}
                       </View>

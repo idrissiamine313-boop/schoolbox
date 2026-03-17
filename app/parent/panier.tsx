@@ -2,291 +2,327 @@ import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator, Alert, KeyboardAvoidingView,
-    Platform, ScrollView, StatusBar, StyleSheet,
-    Text, TextInput, TouchableOpacity, View,
+    ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
+    ScrollView, StatusBar, StyleSheet, Text,
+    TextInput, TouchableOpacity, View,
 } from 'react-native';
-import Svg, { Circle, Line, Path, Polyline } from 'react-native-svg';
+import Svg, { Path, Polyline } from 'react-native-svg';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 
-const NAV = '#0f2356';
-const RED = '#e53e3e';
-const GREEN = '#059669';
-const ORANGE = '#d97706';
-const PURPLE = '#7c3aed';
+const NAV = '#0a1628';
+const RED = '#ef4444';
+const GOLD = '#f59e0b';
+const GREEN = '#10b981';
+const PURPLE = '#8b5cf6';
 
-function IconBack({ size = 20, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Polyline points="15 18 9 12 15 6" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" /></Svg>; }
-function IconLocation({ size = 18, color = NAV }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke={color} strokeWidth={2} /><Circle cx="12" cy="10" r="3" stroke={color} strokeWidth={2} /></Svg>; }
-function IconPhone({ size = 18, color = NAV }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.03 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>; }
-function IconCheck({ size = 22, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Polyline points="20 6 9 17 4 12" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" /></Svg>; }
-function IconCart({ size = 20, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke={color} strokeWidth={2} strokeLinejoin="round" /><Path d="M3 6h18" stroke={color} strokeWidth={2} strokeLinecap="round" /><Path d="M16 10a4 4 0 01-8 0" stroke={color} strokeWidth={2} strokeLinecap="round" /></Svg>; }
-function IconGps({ size = 18, color = RED }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} /><Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={2} /><Line x1="12" y1="2" x2="12" y2="5" stroke={color} strokeWidth={2} strokeLinecap="round" /><Line x1="12" y1="19" x2="12" y2="22" stroke={color} strokeWidth={2} strokeLinecap="round" /><Line x1="2" y1="12" x2="5" y2="12" stroke={color} strokeWidth={2} strokeLinecap="round" /><Line x1="19" y1="12" x2="22" y2="12" stroke={color} strokeWidth={2} strokeLinecap="round" /></Svg>; }
-function IconShield({ size = 16, color = ORANGE }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>; }
-
-function generateQR(): string {
-  return 'SB-' + Math.random().toString(36).substring(2, 8).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
+function IcoBack({ s = 22, c = 'white' }: any) {
+  return <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+    <Polyline points="15 18 9 12 15 6" stroke={c} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>;
+}
+function IcoPhone({ s = 18, c = 'white' }: any) {
+  return <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+    <Path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.7 10.5 19.79 19.79 0 01.65 2a2 2 0 012-2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>;
+}
+function IcoMap({ s = 18, c = 'white' }: any) {
+  return <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+    <Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M12 10m-3 0a3 3 0 106 0 3 3 0 00-6 0" stroke={c} strokeWidth={2} />
+  </Svg>;
+}
+function IcoCheck({ s = 20, c = 'white' }: any) {
+  return <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+    <Polyline points="20 6 9 17 4 12" stroke={c} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>;
 }
 
-export default function PanierParent() {
+function generateQR(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = 'SB-';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code + '-' + Date.now();
+}
+
+export default function Panier() {
   const router = useRouter();
   const { appUser } = useAuth();
-  const params = useLocalSearchParams();
+  const params = useLocalSearchParams<{
+    type: string;
+    fourniture_id: string;
+    fourniture_name: string;
+    total: string;
+    wrapping: string;
+    product_id: string;
+    product_name: string;
+  }>();
 
-  const type = params.type as string;
-  const items = JSON.parse(params.itemsJson as string || '[]');
-  const wrapping = params.wrapping === '1';
-  const wrappingPrice = Number(params.wrappingPrice || 0);
-  const total = Number(params.total || 0);
-  const fournitureId = params.fournitureId as string;
-  const fournitureName = params.fournitureName as string;
-
-  const [address, setAddress] = useState('');
   const [phone, setPhone] = useState(appUser?.parent_phone || '');
-  const [locationLat, setLocationLat] = useState<number | null>(null);
-  const [locationLng, setLocationLng] = useState<number | null>(null);
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [address, setAddress] = useState('');
+  const [comment, setComment] = useState('');
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const isFourniture = type === 'fourniture';
-  const color = isFourniture ? GREEN : PURPLE;
+  const total = parseFloat(params.total || '0');
+  const isWrapping = params.wrapping === '1';
+  const isFourniture = params.type === 'fourniture';
+  const orderName = isFourniture ? params.fourniture_name : params.product_name;
+
+  const schoolId = appUser?.student?.school_id || appUser?.student?.school?.id;
 
   async function getLocation() {
-    setLocationLoading(true);
+    setLoadingLocation(true);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') { Alert.alert('Permission refusée', 'Autorisez la localisation'); setLocationLoading(false); return; }
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-      setLocationLat(loc.coords.latitude);
-      setLocationLng(loc.coords.longitude);
-      // reverse geocode
-      const geo = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
-      if (geo[0]) {
-        const g = geo[0];
-        setAddress([g.street, g.streetNumber, g.city, g.region].filter(Boolean).join(', '));
+      if (status !== 'granted') {
+        Alert.alert('Permission refusée', 'Activez la localisation pour continuer.');
+        setLoadingLocation(false);
+        return;
       }
-    } catch { Alert.alert('Erreur', 'Impossible d\'obtenir la localisation'); }
-    setLocationLoading(false);
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      setLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
+    } catch {
+      Alert.alert('Erreur', 'Impossible d\'obtenir la localisation.');
+    }
+    setLoadingLocation(false);
   }
 
-  async function handleConfirm() {
-    if (!address.trim()) { Alert.alert('Erreur', 'Entrez votre adresse de livraison'); return; }
-    if (!phone.trim()) { Alert.alert('Erreur', 'Entrez votre numéro de téléphone'); return; }
+  async function handleValider() {
+    if (!phone.trim()) { Alert.alert('Erreur', 'Entrez votre numéro de téléphone.'); return; }
+    if (!address.trim()) { Alert.alert('Erreur', 'Entrez votre adresse de livraison.'); return; }
 
-    setLoading(true);
-    console.log('items:', JSON.stringify(items));
-console.log('total:', total);
+    setSubmitting(true);
     try {
       const qrCode = generateQR();
 
-      const orderPayload: any = {
+      const orderData: any = {
         parent_code_id: appUser?.id,
-        student_id: appUser?.student_id,
-        type,
+        student_id: appUser?.student?.id,
+        school_id: schoolId || null,
+        type: isFourniture ? 'fourniture' : 'catalogue',
         status: 'en_preparation',
         total_price: total,
-        address: address.trim(),
         phone: phone.trim(),
-        location_lat: locationLat,
-        location_lng: locationLng,
-        qr_code: qrCode,
-        wrapping: wrapping,
+        address: address.trim(),
+        notes: comment.trim() || null,
+        location_lat: location?.lat || null,
+        location_lng: location?.lng || null,
+        wrapping: isWrapping,
+        qr_token: qrCode,
       };
 
-      if (isFourniture) orderPayload.fourniture_id = fournitureId;
+      if (isFourniture && params.fourniture_id) {
+        orderData.fourniture_id = params.fourniture_id;
+      }
 
-      const { data: order, error: orderError } = await supabase
+      if (!isFourniture && params.product_id) {
+        orderData.product_id = params.product_id;
+      }
+
+      const { data: order, error } = await supabase
         .from('orders')
-        .insert(orderPayload)
+        .insert(orderData)
         .select()
         .single();
 
-      if (orderError) throw orderError;
+      if (error || !order) throw new Error('Erreur création commande');
 
-      // زيد les items
-      const orderItems = items.map((item: any) => ({
-  order_id: order.id,
-  item_name: item.name,
-  item_price: item.price,
-  unit_price: item.price,
-  quantity: item.quantity || 1,
-  item_type: isFourniture ? 'fourniture_item' : 'product',
-  fourniture_item_id: isFourniture ? item.id : null,
-  product_id: !isFourniture ? item.id : null,
-}));
-
-      const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
-      if (itemsError) throw itemsError;
-
-      setLoading(false);
-
-      // روح لصفحة الreçu
+      setSubmitting(false);
       router.replace({
         pathname: '/parent/recu',
-        params: { orderId: order.id }
+        params: {
+          order_id: order.id,
+          qr_code: qrCode,
+          total: total.toString(),
+          order_name: orderName,
+          phone: phone.trim(),
+          address: address.trim(),
+          destination: isFourniture ? 'libraire_admin' : 'admin_only',
+        }
       } as any);
 
-    } catch (e: any) {
-      Alert.alert('Erreur', e.message || 'Une erreur est survenue');
-      setLoading(false);
+    } catch (e) {
+      setSubmitting(false);
+      Alert.alert('Erreur', 'Impossible de créer la commande. Réessayez.');
     }
   }
 
   return (
-    <View style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor={color} />
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <View style={s.root}>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: NAV }]} />
 
-      {/* HEADER */}
-      <View style={[s.header, { backgroundColor: color }]}>
-        <View style={s.dec1} /><View style={s.dec2} />
-        <View style={s.headerRow}>
-          <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><IconBack /></TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={s.headerTitle}>Récapitulatif</Text>
-            <Text style={s.headerSub}>{isFourniture ? fournitureName : 'Catalogue'}</Text>
-          </View>
+        <View style={s.header}>
+          <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+            <IcoBack s={22} />
+          </TouchableOpacity>
+          <Text style={s.headerTitle}>Finaliser la commande</Text>
+          <View style={{ width: 42 }} />
         </View>
-      </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+          <View style={s.content}>
 
-          {/* ARTICLES */}
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Articles commandés</Text>
-            {items.map((item: any, i: number) => (
-              <View key={i} style={s.itemRow}>
-                <View style={s.itemDot} />
-                <Text style={s.itemName} numberOfLines={1}>{item.name}</Text>
-                {item.quantity > 1 && <Text style={s.itemQty}>x{item.quantity}</Text>}
-                <Text style={s.itemPrice}>{(Number(item.price) * (item.quantity || 1)).toFixed(2)} MAD</Text>
-              </View>
-            ))}
-            {wrapping && (
-              <View style={[s.itemRow, { backgroundColor: '#fef3c7', borderRadius: 10, padding: 8, marginTop: 4 }]}>
-                <IconShield size={14} color={ORANGE} />
-                <Text style={[s.itemName, { color: ORANGE }]}>Protection cahiers</Text>
-                <Text style={[s.itemPrice, { color: ORANGE }]}>+{wrappingPrice.toFixed(2)} MAD</Text>
-              </View>
-            )}
-            <View style={s.totalRow}>
-              <Text style={s.totalLabel}>Total</Text>
-              <Text style={s.totalAmt}>{total.toFixed(2)} MAD</Text>
+            <View style={[s.destinationBadge, {
+              backgroundColor: isFourniture ? 'rgba(59,130,246,0.15)' : 'rgba(139,92,246,0.15)',
+              borderColor: isFourniture ? 'rgba(59,130,246,0.4)' : 'rgba(139,92,246,0.4)'
+            }]}>
+              <Text style={[s.destinationTxt, { color: isFourniture ? '#60a5fa' : PURPLE }]}>
+                {isFourniture
+                  ? '📚 Cette commande sera envoyée au libraire de votre école'
+                  : '🛍️ Cette commande sera traitée par l\'administration'}
+              </Text>
             </View>
-          </View>
 
-          {/* LIVRAISON */}
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Informations de livraison</Text>
+            <View style={s.summaryCard}>
+              <Text style={s.summaryTitle}>📦 Résumé</Text>
+              <View style={s.summaryRow}>
+                <Text style={s.summaryLbl}>{orderName}</Text>
+                <Text style={s.summaryVal}>{total.toFixed(0)} DH</Text>
+              </View>
+              {isWrapping && (
+                <View style={s.summaryRow}>
+                  <Text style={s.summaryLbl}>🎁 Protection cahiers</Text>
+                  <Text style={[s.summaryVal, { color: GREEN }]}>Inclus</Text>
+                </View>
+              )}
+              <View style={s.summaryDivider} />
+              <View style={s.summaryRow}>
+                <Text style={s.summaryTotal}>Total</Text>
+                <Text style={s.summaryTotalVal}>{total.toFixed(0)} DH</Text>
+              </View>
+            </View>
 
-            <Text style={s.lbl}>TÉLÉPHONE *</Text>
-            <View style={s.inputWrap}>
-              <IconPhone size={16} color="#9ca3af" />
+            <View style={s.inputCard}>
+              <View style={s.inputLabel}>
+                <View style={s.inputIcon}><IcoPhone s={16} c={PURPLE} /></View>
+                <Text style={s.inputLabelTxt}>Numéro de téléphone</Text>
+              </View>
               <TextInput
                 style={s.input}
                 value={phone}
                 onChangeText={setPhone}
-                placeholder="06 XX XX XX XX"
-                placeholderTextColor="#9ca3af"
+                placeholder="ex: 06 12 34 56 78"
+                placeholderTextColor="rgba(255,255,255,0.3)"
                 keyboardType="phone-pad"
               />
             </View>
 
-            <Text style={s.lbl}>ADRESSE DE LIVRAISON *</Text>
-            <View style={[s.inputWrap, { alignItems: 'flex-start', paddingTop: 14 }]}>
-              <IconLocation size={16} color="#9ca3af" />
+            <View style={s.inputCard}>
+              <View style={s.inputLabel}>
+                <View style={s.inputIcon}><IcoMap s={16} c={GOLD} /></View>
+                <Text style={s.inputLabelTxt}>Adresse de livraison</Text>
+              </View>
               <TextInput
-                style={[s.input, { minHeight: 70, textAlignVertical: 'top' }]}
+                style={s.input}
                 value={address}
                 onChangeText={setAddress}
                 placeholder="Rue, quartier, ville..."
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="rgba(255,255,255,0.3)"
                 multiline
               />
             </View>
 
-            {/* Localisation GPS */}
-            <TouchableOpacity style={s.gpsBtn} onPress={getLocation} disabled={locationLoading}>
-              {locationLoading
-                ? <ActivityIndicator color={RED} size="small" />
-                : <IconGps size={18} color={locationLat ? GREEN : RED} />
+            <TouchableOpacity
+              style={[s.locationBtn, location && s.locationBtnActive]}
+              onPress={getLocation}
+              activeOpacity={0.85}
+              disabled={loadingLocation}
+            >
+              {loadingLocation
+                ? <ActivityIndicator color={GREEN} size="small" />
+                : location
+                  ? <><View style={s.locationCheck}><IcoCheck s={16} c="white" /></View>
+                      <View>
+                        <Text style={s.locationTxt}>📍 Localisation obtenue</Text>
+                        <Text style={s.locationSub}>{location.lat.toFixed(4)}, {location.lng.toFixed(4)}</Text>
+                      </View>
+                    </>
+                  : <><Text style={s.locationEmoji}>📍</Text>
+                      <View>
+                        <Text style={s.locationTxt}>Ajouter ma localisation GPS</Text>
+                        <Text style={s.locationSub}>Pour une livraison précise</Text>
+                      </View>
+                    </>
               }
-              <Text style={[s.gpsBtnTxt, locationLat !== null && { color: GREEN }]}>
-                {locationLat ? '✓ Localisation obtenue' : 'Utiliser ma localisation GPS'}
-              </Text>
             </TouchableOpacity>
-          </View>
 
-          {/* RECAP */}
-          <View style={[s.section, { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }]}>
-            <View style={s.recapRow}>
-              <Text style={s.recapLabel}>Type de commande</Text>
-              <Text style={s.recapVal}>{isFourniture ? '📚 Fournitures' : '🛍️ Catalogue'}</Text>
+            <View style={s.inputCard}>
+              <View style={s.inputLabel}>
+                <Text style={{ fontSize: 16 }}>💬</Text>
+                <Text style={s.inputLabelTxt}>Commentaire <Text style={s.facultatif}>(facultatif)</Text></Text>
+              </View>
+              <TextInput
+                style={[s.input, { minHeight: 80 }]}
+                value={comment}
+                onChangeText={setComment}
+                placeholder="Instructions spéciales, remarques..."
+                placeholderTextColor="rgba(255,255,255,0.3)"
+                multiline
+                textAlignVertical="top"
+              />
             </View>
-            <View style={s.recapRow}>
-              <Text style={s.recapLabel}>Articles</Text>
-              <Text style={s.recapVal}>{items.length} article{items.length !== 1 ? 's' : ''}</Text>
-            </View>
-            <View style={s.recapRow}>
-              <Text style={s.recapLabel}>Total à payer</Text>
-              <Text style={[s.recapVal, { color: color, fontSize: 16, fontWeight: '900' }]}>{total.toFixed(2)} MAD</Text>
-            </View>
-          </View>
 
-          <View style={{ height: 100 }} />
+          </View>
         </ScrollView>
-      </KeyboardAvoidingView>
 
-      {/* CONFIRM BTN */}
-      <View style={s.bottomBar}>
-        <TouchableOpacity
-          style={[s.confirmBtn, { backgroundColor: color }, loading && { opacity: 0.7 }]}
-          onPress={handleConfirm}
-          disabled={loading}
-          activeOpacity={0.85}
-        >
-          {loading
-            ? <ActivityIndicator color="white" />
-            : <>
-                <IconCheck size={20} color="white" />
-                <Text style={s.confirmTxt}>Confirmer la commande</Text>
-              </>
-          }
-        </TouchableOpacity>
+        <View style={s.bottomBar}>
+          <View style={s.bottomInfo}>
+            <Text style={s.bottomLbl}>Total à payer</Text>
+            <Text style={s.bottomPrice}>{total.toFixed(0)} DH</Text>
+          </View>
+          <TouchableOpacity
+            style={[s.validerBtn, submitting && { opacity: 0.7 }]}
+            onPress={handleValider}
+            disabled={submitting}
+            activeOpacity={0.88}
+          >
+            {submitting
+              ? <ActivityIndicator color="white" size="small" />
+              : <><IcoCheck s={20} c="white" /><Text style={s.validerTxt}>Valider</Text></>
+            }
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f7f8fc' },
-  header: { paddingTop: 52, paddingBottom: 20, paddingHorizontal: 16, overflow: 'hidden' },
-  dec1: { position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(255,255,255,0.06)' },
-  dec2: { position: 'absolute', bottom: -30, left: -20, width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.04)' },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  backBtn: { width: 40, height: 40, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 13, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  headerTitle: { fontSize: 20, fontWeight: '900', color: 'white' },
-  headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.65)', fontWeight: '600', marginTop: 1 },
-  scroll: { padding: 16 },
-  section: { backgroundColor: 'white', borderRadius: 18, padding: 16, marginBottom: 12, shadowColor: NAV, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, borderWidth: 1, borderColor: 'rgba(15,35,86,0.05)' },
-  sectionTitle: { fontSize: 15, fontWeight: '900', color: NAV, marginBottom: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  itemRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: '#f9fafb' },
-  itemDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: NAV + '40' },
-  itemName: { flex: 1, fontSize: 13, color: NAV, fontWeight: '600' },
-  itemQty: { fontSize: 12, color: '#6b7280', fontWeight: '700' },
-  itemPrice: { fontSize: 13, fontWeight: '800', color: GREEN },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 10, borderTopWidth: 1.5, borderTopColor: '#f3f4f6' },
-  totalLabel: { fontSize: 14, fontWeight: '800', color: NAV },
-  totalAmt: { fontSize: 20, fontWeight: '900', color: NAV },
-  lbl: { fontSize: 10, fontWeight: '800', color: '#9ca3af', letterSpacing: 1.2, marginBottom: 8, marginTop: 14 },
-  inputWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#f7f8fc', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 14, borderWidth: 1.5, borderColor: '#e5e7eb' },
-  input: { flex: 1, fontSize: 14, color: NAV, fontWeight: '500' },
-  gpsBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, backgroundColor: '#fef2f2', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#fecaca' },
-  gpsBtnTxt: { fontSize: 13, fontWeight: '700', color: RED },
-  recapRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
-  recapLabel: { fontSize: 13, color: '#6b7280', fontWeight: '600' },
-  recapVal: { fontSize: 13, fontWeight: '800', color: NAV },
-  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'white', padding: 16, paddingBottom: 30, borderTopWidth: 1, borderTopColor: '#f3f4f6', shadowColor: NAV, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 10 },
-  confirmBtn: { borderRadius: 16, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  confirmTxt: { color: 'white', fontWeight: '900', fontSize: 15 },
+  root: { flex: 1, backgroundColor: NAV },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 54, paddingHorizontal: 18, paddingBottom: 16, backgroundColor: 'rgba(10,22,40,0.95)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  backBtn: { width: 42, height: 42, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 18, fontWeight: '900', color: 'white' },
+  content: { padding: 18, gap: 14 },
+  destinationBadge: { borderRadius: 14, padding: 14, borderWidth: 1.5 },
+  destinationTxt: { fontSize: 13, fontWeight: '700', textAlign: 'center', lineHeight: 20 },
+  summaryCard: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 20, padding: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', gap: 10 },
+  summaryTitle: { fontSize: 15, fontWeight: '900', color: 'white', marginBottom: 4 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  summaryLbl: { fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: '600', flex: 1 },
+  summaryVal: { fontSize: 14, fontWeight: '800', color: 'white' },
+  summaryDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.08)' },
+  summaryTotal: { fontSize: 15, fontWeight: '900', color: 'white' },
+  summaryTotalVal: { fontSize: 20, fontWeight: '900', color: GOLD },
+  inputCard: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 18, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', gap: 10 },
+  inputLabel: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  inputIcon: { width: 32, height: 32, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  inputLabelTxt: { fontSize: 14, fontWeight: '800', color: 'white' },
+  facultatif: { fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: '600' },
+  input: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, color: 'white', fontSize: 14, fontWeight: '600', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  locationBtn: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: 'rgba(16,185,129,0.1)', borderRadius: 18, padding: 16, borderWidth: 1.5, borderColor: 'rgba(16,185,129,0.25)' },
+  locationBtnActive: { backgroundColor: 'rgba(16,185,129,0.18)', borderColor: 'rgba(16,185,129,0.5)' },
+  locationCheck: { width: 32, height: 32, backgroundColor: GREEN, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  locationEmoji: { fontSize: 28 },
+  locationTxt: { fontSize: 14, fontWeight: '800', color: 'white' },
+  locationSub: { fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 },
+  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(10,22,40,0.97)', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 18, paddingVertical: 14, paddingBottom: 28, flexDirection: 'row', alignItems: 'center', gap: 14 },
+  bottomInfo: { flex: 1 },
+  bottomLbl: { fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: '600' },
+  bottomPrice: { fontSize: 24, fontWeight: '900', color: GOLD },
+  validerBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: GREEN, borderRadius: 16, paddingHorizontal: 28, paddingVertical: 14, shadowColor: GREEN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.45, shadowRadius: 12, elevation: 8 },
+  validerTxt: { fontSize: 16, fontWeight: '900', color: 'white' },
 });

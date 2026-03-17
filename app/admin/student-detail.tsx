@@ -100,7 +100,7 @@ function getAvatar(name: string): string {
     'housni','hamidou','hamdane','hamidane','imrane','imran','iskandar','joud','jamil',
     'joudi','karam','kamil','kinan','louai','lyes','lounis','maher','malek','mansour',
     'marwan','mazen','mido','mouhcine','moulay','moumen','moutaz','nadim','nasser',
-    'nizar','noureddine','omar','oualid','rachad','rayan','rida','sabir','saif','samy',
+    'nizar','noureddine','omar','oualid','rachad','rayan','rida','sabir','saif','samy','moha',
     'siraj','yasser',
   ];
   return maleNames.some(fn => n.startsWith(fn)) ? '👦' : '👧';

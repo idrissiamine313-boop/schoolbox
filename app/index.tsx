@@ -13,10 +13,10 @@ export default function Index() {
     );
   }
 
- if (!appUser) return <Redirect href={'/auth/splash' as any} />;
+  if (!appUser) return <Redirect href={'/auth/splash' as any} />;
   if (appUser.role === 'admin') return <Redirect href="/admin/dashboard" />;
   if (appUser.role === 'libraire') return <Redirect href="/libraire/dashboard" />;
-  if (appUser.role === 'livreur') return <Redirect href="/driver/orders" />;
+  if (appUser.role === 'livreur') return <Redirect href="/livreur/home" />;
   if (appUser.role === 'parent') return <Redirect href="/parent/home" />;
 
   return <Redirect href={'/auth/splash' as any} />;

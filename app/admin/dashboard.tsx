@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert, Image, ScrollView, StatusBar, StyleSheet,
-  Text, TouchableOpacity, View,
+  Text, TouchableOpacity, View
 } from 'react-native';
 import Svg, { Circle, Line, Path, Polyline, Rect } from 'react-native-svg';
 import { useLang } from '../../context/LanguageContext';
@@ -35,40 +35,52 @@ const PERIODS_TRANS: any = {
 const DASH_TRANS: any = {
   fr: {
     overview: "Vue d'ensemble", management: 'Gestion',
-    school: 'École', product: 'Produit', parent: 'Parent', event: 'Événement',
-    inPrep: 'En prép.', waiting: 'En attente', cancelled: 'Annulées', delivered: 'Livrées',
+    school: 'Écoles', product: 'Produits', student: 'Élèves', 
+    announcement: 'Annonces', fourniture: 'Fournitures',
+    library: 'Librairies', driver: 'Livreurs',
+    inPrep: 'En prép.', enRoute: 'En route', cancelled: 'Annulées', delivered: 'Livrées',
     schools: 'Écoles', products: 'Produits', parents: 'Parents',
-    driver: 'Livreur', library: 'Librairie', users: 'Utilisateurs',
+    drivers: 'Livreurs', libraries: 'Librairies', users: 'Utilisateurs',
     ordersAll: 'Voir toutes', orders: 'Commandes',
+    ordersCatalogue: 'Commandes Catalogue', ordersFourniture: 'Commandes Fournitures',
     balance: 'Solde du compte', admin: 'Admin',
   },
   ar: {
     overview: 'نظرة عامة', management: 'الإدارة',
-    school: 'مدرسة', product: 'منتج', parent: 'ولي أمر', event: 'حدث',
-    inPrep: 'قيد التحضير', waiting: 'في الانتظار', cancelled: 'ملغاة', delivered: 'مُسلَّمة',
+    school: 'المدارس', product: 'المنتجات', student: 'التلاميذ',
+    announcement: 'الإعلانات', fourniture: 'المستلزمات',
+    library: 'المكتبات', driver: 'السائقين',
+    inPrep: 'قيد التحضير', enRoute: 'في الطريق', cancelled: 'ملغاة', delivered: 'مُسلَّمة',
     schools: 'المدارس', products: 'المنتجات', parents: 'الآباء',
-    driver: 'سائق', library: 'مكتبة', users: 'المستخدمون',
+    drivers: 'السائقين', libraries: 'المكتبات', users: 'المستخدمون',
     ordersAll: 'عرض الكل', orders: 'الطلبات',
+    ordersCatalogue: 'طلبات الكتالوج', ordersFourniture: 'طلبات المستلزمات',
     balance: 'رصيد الحساب', admin: 'المشرف',
   },
   en: {
     overview: 'Overview', management: 'Management',
-    school: 'School', product: 'Product', parent: 'Parent', event: 'Event',
-    inPrep: 'In prep.', waiting: 'Waiting', cancelled: 'Cancelled', delivered: 'Delivered',
+    school: 'Schools', product: 'Products', student: 'Students',
+    announcement: 'Announcements', fourniture: 'Supplies',
+    library: 'Libraries', driver: 'Drivers',
+    inPrep: 'In prep.', enRoute: 'En route', cancelled: 'Cancelled', delivered: 'Delivered',
     schools: 'Schools', products: 'Products', parents: 'Parents',
-    driver: 'Driver', library: 'Library', users: 'Users',
+    drivers: 'Drivers', libraries: 'Libraries', users: 'Users',
     ordersAll: 'View all', orders: 'Orders',
+    ordersCatalogue: 'Catalogue Orders', ordersFourniture: 'Supplies Orders',
     balance: 'Account balance', admin: 'Admin',
   },
 };
 
+// ======= ICONS =======
 function IconSchool({ size = 24, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M3 9.5L12 4l9 5.5V20H3V9.5z" stroke={color} strokeWidth={1.8} strokeLinejoin="round" /><Path d="M9 20v-6h6v6" stroke={color} strokeWidth={1.8} strokeLinejoin="round" /><Rect x="10" y="9" width="4" height="4" rx="0.5" stroke={color} strokeWidth={1.5} /></Svg>; }
 function IconBox({ size = 24, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M21 8L12 3 3 8v8l9 5 9-5V8z" stroke={color} strokeWidth={1.8} strokeLinejoin="round" /><Path d="M12 3v18" stroke={color} strokeWidth={1.8} strokeLinecap="round" /><Path d="M3 8l9 5 9-5" stroke={color} strokeWidth={1.8} strokeLinejoin="round" /></Svg>; }
+function IconStudent({ size = 24, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" /><Path d="M6 12v5c3 3 9 3 12 0v-5" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" /></Svg>; }
 function IconParent({ size = 24, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" /><Circle cx="9" cy="7" r="4" stroke={color} strokeWidth={1.8} /><Path d="M23 21v-2a4 4 0 00-3-3.87" stroke={color} strokeWidth={1.8} strokeLinecap="round" /><Path d="M16 3.13a4 4 0 010 7.75" stroke={color} strokeWidth={1.8} strokeLinecap="round" /></Svg>; }
+function IconAnnouncement({ size = 24, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" /><Path d="M13.73 21a2 2 0 01-3.46 0" stroke={color} strokeWidth={1.8} strokeLinecap="round" /></Svg>; }
+function IconFourniture({ size = 24, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" /><Path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" /><Path d="M8 7h8M8 11h6" stroke={color} strokeWidth={1.5} strokeLinecap="round" /></Svg>; }
 function IconDriver({ size = 24, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Rect x="1" y="9" width="22" height="9" rx="2" stroke={color} strokeWidth={1.8} /><Circle cx="6" cy="18" r="2" stroke={color} strokeWidth={1.8} /><Circle cx="18" cy="18" r="2" stroke={color} strokeWidth={1.8} /><Path d="M4 9l2-5h12l2 5" stroke={color} strokeWidth={1.8} strokeLinejoin="round" /></Svg>; }
 function IconLibrary({ size = 24, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M4 19V5a2 2 0 012-2h13a1 1 0 011 1v13" stroke={color} strokeWidth={1.8} strokeLinecap="round" /><Path d="M4 19a2 2 0 002 2h14" stroke={color} strokeWidth={1.8} strokeLinecap="round" /><Path d="M8 7h8M8 11h8M8 15h5" stroke={color} strokeWidth={1.5} strokeLinecap="round" /></Svg>; }
 function IconUsers({ size = 24, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Circle cx="9" cy="7" r="3" stroke={color} strokeWidth={1.8} /><Path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke={color} strokeWidth={1.8} strokeLinecap="round" /><Path d="M16 3.13a4 4 0 010 7.75" stroke={color} strokeWidth={1.8} strokeLinecap="round" /><Path d="M21 21v-2a4 4 0 00-3-3.85" stroke={color} strokeWidth={1.8} strokeLinecap="round" /></Svg>; }
-function IconEvent({ size = 24, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Rect x="3" y="4" width="18" height="18" rx="2" stroke={color} strokeWidth={1.8} /><Path d="M16 2v4M8 2v4M3 10h18" stroke={color} strokeWidth={1.8} strokeLinecap="round" /><Path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" stroke={color} strokeWidth={2.5} strokeLinecap="round" /></Svg>; }
 function IconCart({ size = 28, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke={color} strokeWidth={1.8} strokeLinejoin="round" /><Line x1="3" y1="6" x2="21" y2="6" stroke={color} strokeWidth={1.8} strokeLinecap="round" /><Path d="M16 10a4 4 0 01-8 0" stroke={color} strokeWidth={1.8} strokeLinecap="round" /></Svg>; }
 function IconLogout({ size = 22, color = '#fc8181' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /><Polyline points="16 17 21 12 16 7" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /><Line x1="21" y1="12" x2="9" y2="12" stroke={color} strokeWidth={2.2} strokeLinecap="round" /></Svg>; }
 function IconWallet({ size = 26, color = 'rgba(255,255,255,0.8)' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M21 12V7H5a2 2 0 010-4h14v4" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" /><Path d="M3 5v14a2 2 0 002 2h16v-5" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" /><Path d="M18 12a2 2 0 000 4h4v-4z" stroke={color} strokeWidth={1.8} strokeLinejoin="round" /></Svg>; }
@@ -83,39 +95,104 @@ export default function AdminDashboard() {
   const periods = PERIODS_TRANS[lang];
 
   const [period, setPeriod] = useState('today');
-  const [stats, setStats] = useState({ schools: 0, products: 0, parents: 0, events: 0, enPrep: 0, enAttente: 0, annulees: 0, livrees: 0 });
+  const [stats, setStats] = useState({
+    schools: 0, products: 0, students: 0, announcements: 0,
+    fournitures: 0, libraries: 0, drivers: 0,
+    // Catalogue orders
+    catPrep: 0, catRoute: 0, catAnnulee: 0, catLivree: 0,
+    // Fourniture orders
+    fourPrep: 0, fourRoute: 0, fourAnnulee: 0, fourLivree: 0,
+  });
   const [loading, setLoading] = useState(true);
-  const [balance] = useState(10000);
+  const [balance, setBalance] = useState(0);
   const [showBalance, setShowBalance] = useState(false);
   const greeting = getGreeting(lang);
 
   useEffect(() => { loadStats(); }, [period]);
 
+  function getFromDate(): string {
+    const now = new Date();
+    if (period === 'today') { const d = new Date(now); d.setHours(0,0,0,0); return d.toISOString(); }
+    if (period === 'yesterday') { const d = new Date(now); d.setDate(d.getDate()-1); d.setHours(0,0,0,0); return d.toISOString(); }
+    if (period === 'week') { const d = new Date(now); d.setDate(d.getDate()-7); return d.toISOString(); }
+    if (period === 'month') { const d = new Date(now); d.setDate(1); d.setHours(0,0,0,0); return d.toISOString(); }
+    if (period === 'year') { const d = new Date(now); d.setMonth(0,1); d.setHours(0,0,0,0); return d.toISOString(); }
+    return '2000-01-01';
+  }
+
   async function loadStats() {
     setLoading(true);
     try {
-      const now = new Date();
-      let from: string | null = null;
-      if (period === 'today') { const d = new Date(now); d.setHours(0,0,0,0); from = d.toISOString(); }
-      else if (period === 'yesterday') { const d = new Date(now); d.setDate(d.getDate()-1); d.setHours(0,0,0,0); from = d.toISOString(); }
-      else if (period === 'week') { const d = new Date(now); d.setDate(d.getDate()-7); from = d.toISOString(); }
-      else if (period === 'month') { const d = new Date(now); d.setDate(1); d.setHours(0,0,0,0); from = d.toISOString(); }
-      else if (period === 'year') { const d = new Date(now); d.setMonth(0,1); d.setHours(0,0,0,0); from = d.toISOString(); }
-      const fromDate = from || '2000-01-01';
+      const fromDate = getFromDate();
+
       const [
-        { count: schools }, { count: parents }, { count: products },
-        { count: enPrep }, { count: enAttente }, { count: annulees }, { count: livrees },
+        { count: schools },
+        { count: products },
+        { count: students },
+        { count: announcements },
+        { count: fournitures },
+        { count: libraries },
+        { count: drivers },
+        { count: catPrep },
+        { count: catRoute },
+        { count: catAnnulee },
+        { count: catLivree },
+        { count: fourPrep },
+        { count: fourRoute },
+        { count: fourAnnulee },
+        { count: fourLivree },
+        { data: livreesData },
       ] = await Promise.all([
         supabase.from('schools').select('*', { count: 'exact', head: true }),
-        supabase.from('parent_codes').select('*', { count: 'exact', head: true }),
         supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'en_preparation').gte('created_at', fromDate),
-        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'en_attente').gte('created_at', fromDate),
-        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'annulee').gte('created_at', fromDate),
-        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'livree').gte('created_at', fromDate),
+        supabase.from('students').select('*', { count: 'exact', head: true }),
+        supabase.from('announcements').select('*', { count: 'exact', head: true }),
+        supabase.from('fournitures').select('*', { count: 'exact', head: true }),
+        supabase.from('libraries').select('*', { count: 'exact', head: true }),
+        supabase.from('app_users').select('*', { count: 'exact', head: true }).eq('role', 'livreur'),
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+          .eq('type', 'catalogue').eq('status', 'en_preparation').gte('created_at', fromDate),
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+          .eq('type', 'catalogue').eq('status', 'in_delivery').gte('created_at', fromDate),
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+          .eq('type', 'catalogue').eq('status', 'annulee').gte('created_at', fromDate),
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+          .eq('type', 'catalogue').in('status', ['livree', 'delivered']).gte('created_at', fromDate),
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+          .eq('type', 'fourniture').eq('status', 'en_preparation').gte('created_at', fromDate),
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+          .eq('type', 'fourniture').eq('status', 'in_delivery').gte('created_at', fromDate),
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+          .eq('type', 'fourniture').eq('status', 'annulee').gte('created_at', fromDate),
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+          .eq('type', 'fourniture').in('status', ['livree', 'delivered']).gte('created_at', fromDate),
+        supabase.from('orders').select('total_price')
+          .in('status', ['livree', 'delivered']).gte('created_at', fromDate),
       ]);
-      setStats({ schools: schools||0, products: products||0, parents: parents||0, events: 0, enPrep: enPrep||0, enAttente: enAttente||0, annulees: annulees||0, livrees: livrees||0 });
-    } catch {}
+
+      const totalBalance = livreesData?.reduce((sum, order) => sum + (order.total_price || 0), 0) || 0;
+      setBalance(totalBalance);
+
+      setStats({
+        schools: schools || 0,
+        products: products || 0,
+        students: students || 0,
+        announcements: announcements || 0,
+        fournitures: fournitures || 0,
+        libraries: libraries || 0,
+        drivers: drivers || 0,
+        catPrep: catPrep || 0,
+        catRoute: catRoute || 0,
+        catAnnulee: catAnnulee || 0,
+        catLivree: catLivree || 0,
+        fourPrep: fourPrep || 0,
+        fourRoute: fourRoute || 0,
+        fourAnnulee: fourAnnulee || 0,
+        fourLivree: fourLivree || 0,
+      });
+    } catch (e) {
+      console.error('Error loading stats:', e);
+    }
     setLoading(false);
   }
 
@@ -131,13 +208,15 @@ export default function AdminDashboard() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0f2356" />
+      
+      {/* ========= HEADER ========= */}
       <View style={styles.header}>
         <View style={styles.decCircle1} />
         <View style={styles.decCircle2} />
         <View style={styles.headerTop}>
           <View style={styles.logoWrap}>
             <View style={styles.logoBox}>
-              <Image source={require('../../assets/images/logo.jpg')} style={styles.logoImg} />
+              <Image source={require('../../assets/images/logo.png')} style={styles.logoImg} />
             </View>
             <View>
               <Text style={styles.logoName}>SchoolBox</Text>
@@ -170,7 +249,10 @@ export default function AdminDashboard() {
         </TouchableOpacity>
       </View>
 
+      {/* ========= CONTENT ========= */}
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        
+        {/* ---- Period Filter ---- */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.periodScroll} contentContainerStyle={styles.periodContent}>
           {Object.entries(periods).map(([key, label]) => (
             <TouchableOpacity key={key} style={[styles.periodBtn, period === key && styles.periodBtnActive]} onPress={() => setPeriod(key)}>
@@ -179,16 +261,19 @@ export default function AdminDashboard() {
           ))}
         </ScrollView>
 
+        {/* ---- Vue d'ensemble ---- */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionBar} />
           <Text style={styles.sectionTitle}>{d.overview}</Text>
         </View>
+
+        {/* Row 1: Écoles, Produits, Élèves, Annonces */}
         <View style={styles.statsRow}>
           {[
             { Icon: IconSchool, num: S(stats.schools), label: d.school },
             { Icon: IconBox, num: S(stats.products), label: d.product },
-            { Icon: IconParent, num: S(stats.parents), label: d.parent },
-            { Icon: IconEvent, num: S(stats.events), label: d.event },
+            { Icon: IconStudent, num: S(stats.students), label: d.student },
+            { Icon: IconAnnouncement, num: S(stats.announcements), label: d.announcement },
           ].map((s, i) => (
             <View key={i} style={styles.statCard}>
               <View style={styles.statIconWrap}><s.Icon size={20} color="#1a3285" /></View>
@@ -197,12 +282,33 @@ export default function AdminDashboard() {
             </View>
           ))}
         </View>
+
+        {/* Row 2: Fournitures, Librairies, Livreurs */}
+        <View style={styles.statsRow}>
+          {[
+            { Icon: IconFourniture, num: S(stats.fournitures), label: d.fourniture },
+            { Icon: IconLibrary, num: S(stats.libraries), label: d.library },
+            { Icon: IconDriver, num: S(stats.drivers), label: d.driver },
+          ].map((s, i) => (
+            <View key={i} style={styles.statCard}>
+              <View style={styles.statIconWrap}><s.Icon size={20} color="#1a3285" /></View>
+              <Text style={styles.statNum}>{s.num}</Text>
+              <Text style={styles.statLabel}>{s.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* ---- Commandes Catalogue ---- */}
+        <View style={[styles.sectionHeader, { marginTop: 6 }]}>
+          <View style={[styles.sectionBar, { backgroundColor: '#3b82f6' }]} />
+          <Text style={styles.sectionTitle}>📦 {d.ordersCatalogue}</Text>
+        </View>
         <View style={styles.statsRow2}>
           {[
-            { num: S(stats.enPrep), label: d.inPrep, color: '#d97706', bg: '#fef3c7', border: '#fcd34d' },
-            { num: S(stats.enAttente), label: d.waiting, color: '#dc2626', bg: '#fee2e2', border: '#fca5a5' },
-            { num: S(stats.annulees), label: d.cancelled, color: '#6b7280', bg: '#f3f4f6', border: '#d1d5db' },
-            { num: S(stats.livrees), label: d.delivered, color: '#16a34a', bg: '#dcfce7', border: '#86efac' },
+            { num: S(stats.catPrep), label: d.inPrep, color: '#d97706', bg: '#fef3c7', border: '#fcd34d' },
+            { num: S(stats.catRoute), label: d.enRoute, color: '#2563eb', bg: '#dbeafe', border: '#93c5fd' },
+            { num: S(stats.catAnnulee), label: d.cancelled, color: '#dc2626', bg: '#fee2e2', border: '#fca5a5' },
+            { num: S(stats.catLivree), label: d.delivered, color: '#16a34a', bg: '#dcfce7', border: '#86efac' },
           ].map((s, i) => (
             <View key={i} style={[styles.statCard2, { backgroundColor: s.bg, borderColor: s.border }]}>
               <Text style={[styles.statNum2, { color: s.color }]}>{s.num}</Text>
@@ -211,18 +317,38 @@ export default function AdminDashboard() {
           ))}
         </View>
 
+        {/* ---- Commandes Fournitures ---- */}
+        <View style={[styles.sectionHeader, { marginTop: 6 }]}>
+          <View style={[styles.sectionBar, { backgroundColor: '#f59e0b' }]} />
+          <Text style={styles.sectionTitle}>🎒 {d.ordersFourniture}</Text>
+        </View>
+        <View style={styles.statsRow2}>
+          {[
+            { num: S(stats.fourPrep), label: d.inPrep, color: '#d97706', bg: '#fef3c7', border: '#fcd34d' },
+            { num: S(stats.fourRoute), label: d.enRoute, color: '#2563eb', bg: '#dbeafe', border: '#93c5fd' },
+            { num: S(stats.fourAnnulee), label: d.cancelled, color: '#dc2626', bg: '#fee2e2', border: '#fca5a5' },
+            { num: S(stats.fourLivree), label: d.delivered, color: '#16a34a', bg: '#dcfce7', border: '#86efac' },
+          ].map((s, i) => (
+            <View key={i} style={[styles.statCard2, { backgroundColor: s.bg, borderColor: s.border }]}>
+              <Text style={[styles.statNum2, { color: s.color }]}>{s.num}</Text>
+              <Text style={[styles.statLabel2, { color: s.color }]}>{s.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* ---- Gestion ---- */}
         <View style={[styles.sectionHeader, { marginTop: 6 }]}>
           <View style={styles.sectionBar} />
           <Text style={styles.sectionTitle}>{d.management}</Text>
         </View>
         <View style={styles.gestionGrid}>
           {[
-            { Icon: IconSchool,  label: d.schools,  route: '/admin/schools' },
-            { Icon: IconBox,     label: d.products, route: '/admin/products' },
-            { Icon: IconParent,  label: d.parents,  route: '/admin/parents' },
-            { Icon: IconDriver,  label: d.driver,   route: '' },
-            { Icon: IconLibrary, label: d.library,  route: '/admin/libraries' },
-            { Icon: IconUsers,   label: d.users,    route: '/admin/users' },
+            { Icon: IconSchool,   label: d.schools,    route: '/admin/schools' },
+            { Icon: IconBox,      label: d.products,   route: '/admin/products' },
+            { Icon: IconParent,   label: d.parents,    route: '/admin/parents' },
+            { Icon: IconDriver,   label: d.drivers,    route: '/admin/drivers' },
+            { Icon: IconLibrary,  label: d.libraries,  route: '/admin/libraries' },
+            { Icon: IconUsers,    label: d.users,      route: '/admin/users' },
           ].map((g, i) => (
             <TouchableOpacity key={i} style={styles.gestionBtn} onPress={() => g.route && router.push(g.route as any)}>
               <View style={styles.gestionIconWrap}><g.Icon size={22} color="white" /></View>
@@ -231,6 +357,7 @@ export default function AdminDashboard() {
           ))}
         </View>
 
+        {/* ---- CTA Commandes ---- */}
         <TouchableOpacity style={styles.commandeBtn} onPress={() => router.push('/admin/orders' as any)}>
           <View style={styles.decCta1} />
           <View style={styles.decCta2} />
@@ -287,7 +414,7 @@ const styles = StyleSheet.create({
   statIconWrap: { width: 40, height: 40, backgroundColor: '#eef2ff', borderRadius: 11, justifyContent: 'center', alignItems: 'center', marginBottom: 2 },
   statNum: { fontSize: 18, fontWeight: '900', color: NAV },
   statLabel: { fontSize: 9, fontWeight: '700', color: '#718096', textAlign: 'center' },
-  statsRow2: { flexDirection: 'row', gap: 7, marginBottom: 20 },
+  statsRow2: { flexDirection: 'row', gap: 7, marginBottom: 16 },
   statCard2: { flex: 1, borderRadius: 14, padding: 10, alignItems: 'center', gap: 3, borderWidth: 1.5 },
   statNum2: { fontSize: 18, fontWeight: '900' },
   statLabel2: { fontSize: 9, fontWeight: '700', textAlign: 'center', opacity: 0.9 },

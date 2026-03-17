@@ -4,284 +4,263 @@ import {
     ActivityIndicator, RefreshControl, ScrollView,
     StatusBar, StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
-import Svg, { Circle, Line, Path, Polyline, Rect } from 'react-native-svg';
+import Svg, { Polyline } from 'react-native-svg';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 
-const NAV = '#0f2356';
-const RED = '#e53e3e';
-const GREEN = '#059669';
-const ORANGE = '#d97706';
-const GRAY = '#6b7280';
+const NAV = '#0a1628';
+const RED = '#ef4444';
+const GOLD = '#f59e0b';
+const GREEN = '#10b981';
+const PURPLE = '#8b5cf6';
+const BLUE = '#3b82f6';
 
-function IconBack({ size = 20, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Polyline points="15 18 9 12 15 6" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" /></Svg>; }
-function IconBox({ size = 20, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M21 8L12 3 3 8v8l9 5 9-5V8z" stroke={color} strokeWidth={2} strokeLinejoin="round" /><Path d="M12 3v18" stroke={color} strokeWidth={2} strokeLinecap="round" /><Path d="M3 8l9 5 9-5" stroke={color} strokeWidth={2} strokeLinejoin="round" /></Svg>; }
-function IconBook({ size = 20, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /><Path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>; }
-function IconClock({ size = 16, color = ORANGE }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} /><Path d="M12 6v6l4 2" stroke={color} strokeWidth={2} strokeLinecap="round" /></Svg>; }
-function IconCheck({ size = 16, color = GREEN }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Polyline points="20 6 9 17 4 12" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" /></Svg>; }
-function IconX({ size = 16, color = RED }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Line x1="18" y1="6" x2="6" y2="18" stroke={color} strokeWidth={2.5} strokeLinecap="round" /><Line x1="6" y1="6" x2="18" y2="18" stroke={color} strokeWidth={2.5} strokeLinecap="round" /></Svg>; }
-function IconTruck({ size = 16, color = NAV }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Rect x="1" y="9" width="15" height="9" rx="1" stroke={color} strokeWidth={2} /><Path d="M16 9h3l3 4v5h-6V9z" stroke={color} strokeWidth={2} strokeLinejoin="round" /><Circle cx="5.5" cy="18.5" r="1.5" stroke={color} strokeWidth={2} /><Circle cx="18.5" cy="18.5" r="1.5" stroke={color} strokeWidth={2} /></Svg>; }
-function IconQr({ size = 18, color = NAV }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Rect x="3" y="3" width="7" height="7" rx="1" stroke={color} strokeWidth={2} /><Rect x="14" y="3" width="7" height="7" rx="1" stroke={color} strokeWidth={2} /><Rect x="3" y="14" width="7" height="7" rx="1" stroke={color} strokeWidth={2} /><Path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3" stroke={color} strokeWidth={2} strokeLinecap="round" /></Svg>; }
-function IconEmpty({ size = 48, color = '#d1d5db' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke={color} strokeWidth={1.5} strokeLinejoin="round" /><Line x1="3" y1="6" x2="21" y2="6" stroke={color} strokeWidth={1.5} strokeLinecap="round" /></Svg>; }
+function IcoBack({ s = 22, c = 'white' }: any) {
+  return <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+    <Polyline points="15 18 9 12 15 6" stroke={c} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>;
+}
+function IcoChevron({ s = 18, c = 'white' }: any) {
+  return <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+    <Polyline points="9 18 15 12 9 6" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>;
+}
 
-const STATUS_CONFIG: any = {
-  en_preparation: { label: 'En préparation', color: ORANGE, bg: '#fef3c7', border: '#fcd34d', Icon: IconClock },
-  en_attente: { label: 'En attente', color: NAV, bg: '#e0e7ff', border: '#a5b4fc', Icon: IconTruck },
-  livree: { label: 'Livrée', color: GREEN, bg: '#dcfce7', border: '#86efac', Icon: IconCheck },
-  annulee: { label: 'Annulée', color: RED, bg: '#fee2e2', border: '#fca5a5', Icon: IconX },
+const STATUS_CONFIG: Record<string, { label: string; color: string; emoji: string; step: number }> = {
+  en_preparation: { label: 'En préparation', color: BLUE, emoji: '⏳', step: 1 },
+  en_attente:     { label: 'En route', color: GOLD, emoji: '🚚', step: 2 },
+  livree:         { label: 'Livré', color: GREEN, emoji: '✅', step: 3 },
+  annulee:        { label: 'Annulée', color: RED, emoji: '❌', step: 0 },
 };
 
-const FILTERS = [
-  { key: 'all', label: 'Toutes' },
-  { key: 'en_preparation', label: 'En prép.' },
-  { key: 'en_attente', label: 'En attente' },
-  { key: 'livree', label: 'Livrées' },
-  { key: 'annulee', label: 'Annulées' },
-];
+function StatusBar2({ status }: { status: string }) {
+  const steps = [
+    { key: 'en_preparation', label: 'Préparation', emoji: '📦' },
+    { key: 'en_attente', label: 'En route', emoji: '🚚' },
+    { key: 'livree', label: 'Livré', emoji: '✅' },
+  ];
+  const currentStep = STATUS_CONFIG[status]?.step || 0;
+  if (status === 'annulee') return (
+    <View style={sb.annuleRow}>
+      <Text style={sb.annuleTxt}>❌ Commande annulée</Text>
+    </View>
+  );
+  return (
+    <View style={sb.root}>
+      {steps.map((step, i) => {
+        const done = currentStep > i;
+        const active = currentStep === i + 1;
+        return (
+          <React.Fragment key={step.key}>
+            <View style={sb.stepCol}>
+              <View style={[sb.stepCircle,
+                done && { backgroundColor: GREEN, borderColor: GREEN },
+                active && { backgroundColor: GOLD, borderColor: GOLD },
+                !done && !active && { backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.2)' }
+              ]}>
+                <Text style={{ fontSize: 12 }}>{step.emoji}</Text>
+              </View>
+              <Text style={[sb.stepLbl, (done || active) && { color: 'white' }]}>{step.label}</Text>
+            </View>
+            {i < 2 && (
+              <View style={[sb.line, done && { backgroundColor: GREEN }]} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </View>
+  );
+}
 
-export default function CommandesParent() {
+const sb = StyleSheet.create({
+  root: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 12, paddingHorizontal: 4 },
+  stepCol: { alignItems: 'center', gap: 4, width: 70 },
+  stepCircle: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', borderWidth: 2 },
+  stepLbl: { fontSize: 9, fontWeight: '700', color: 'rgba(255,255,255,0.4)', textAlign: 'center' },
+  line: { flex: 1, height: 2, backgroundColor: 'rgba(255,255,255,0.1)', marginTop: 17 },
+  annuleRow: { paddingVertical: 12, alignItems: 'center' },
+  annuleTxt: { fontSize: 13, fontWeight: '800', color: RED },
+});
+
+export default function Commandes() {
   const router = useRouter();
   const { appUser } = useAuth();
-  const [commandes, setCommandes] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState<string>('all');
 
-  useEffect(() => { loadCommandes(); }, []);
+  useEffect(() => { loadOrders(); }, [appUser]);
 
-  async function loadCommandes() {
+  async function loadOrders() {
     setRefreshing(true);
     try {
       const { data } = await supabase
         .from('orders')
-        .select(`
-          id, status, type, total_price, wrapping, created_at, address, phone, qr_code,
-          items:order_items(id, item_name, item_price, quantity, item_type),
-          fourniture:fournitures(id, name),
-          student:students(id, full_name, school:schools(name, logo_url))
-        `)
-        .eq('parent_code_id', appUser?.id)
+        .select('*')
+        .eq('student_id', appUser?.student?.id)
         .order('created_at', { ascending: false });
-      setCommandes(data || []);
+      setOrders(data || []);
     } catch {}
     setLoading(false);
     setRefreshing(false);
   }
 
-  const filtered = filter === 'all' ? commandes : commandes.filter(c => c.status === filter);
+  const filters = [
+    { key: 'all', label: 'Toutes' },
+    { key: 'en_preparation', label: '⏳ Prépa' },
+    { key: 'en_attente', label: '🚚 En route' },
+    { key: 'livree', label: '✅ Livrées' },
+    { key: 'annulee', label: '❌ Annulées' },
+  ];
 
-  function formatDate(iso: string) {
-    const d = new Date(iso);
-    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
+  const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+
+  if (loading) return (
+    <View style={{ flex: 1, backgroundColor: NAV, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator color={PURPLE} size="large" />
+    </View>
+  );
 
   return (
-    <View style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor={NAV} />
+    <View style={s.root}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: NAV }]} />
 
-      {/* HEADER */}
+      {/* Header */}
       <View style={s.header}>
-        <View style={s.dec1} /><View style={s.dec2} />
-        <View style={s.headerRow}>
-          <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><IconBack /></TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={s.headerTitle}>Mes Commandes</Text>
-            <Text style={s.headerSub}>{commandes.length} commande{commandes.length !== 1 ? 's' : ''} au total</Text>
-          </View>
-        </View>
-
-        {/* Stats rapides */}
-        <View style={s.statsRow}>
-          {[
-            { key: 'en_preparation', color: ORANGE },
-            { key: 'en_attente', color: NAV },
-            { key: 'livree', color: GREEN },
-            { key: 'annulee', color: RED },
-          ].map(st => {
-            const count = commandes.filter(c => c.status === st.key).length;
-            const cfg = STATUS_CONFIG[st.key];
-            return (
-              <View key={st.key} style={s.statBox}>
-                <Text style={[s.statNum, { color: 'white' }]}>{count}</Text>
-                <Text style={s.statLbl}>{cfg.label.split(' ')[0]}</Text>
-              </View>
-            );
-          })}
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+          <IcoBack s={22} />
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Mes commandes</Text>
+        <View style={s.headerBadge}>
+          <Text style={s.headerBadgeTxt}>{orders.length}</Text>
         </View>
       </View>
 
-      {/* FILTERS */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filterScroll} contentContainerStyle={s.filterContent}>
-        {FILTERS.map(f => (
-          <TouchableOpacity key={f.key} style={[s.filterBtn, filter === f.key && s.filterBtnActive]} onPress={() => setFilter(f.key)}>
+      {/* Filters */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}
+        contentContainerStyle={s.filtersRow}>
+        {filters.map(f => (
+          <TouchableOpacity key={f.key}
+            style={[s.filterBtn, filter === f.key && s.filterBtnActive]}
+            onPress={() => setFilter(f.key)}>
             <Text style={[s.filterTxt, filter === f.key && s.filterTxtActive]}>{f.label}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* LIST */}
-      {loading ? (
-        <View style={s.center}><ActivityIndicator color={NAV} size="large" /></View>
-      ) : (
-        <ScrollView
-          contentContainerStyle={s.scroll}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadCommandes} tintColor={NAV} />}
-          showsVerticalScrollIndicator={false}
-        >
-          {filtered.length === 0 ? (
-            <View style={s.empty}>
-              <View style={s.emptyIcon}><IconEmpty size={48} color="#d1d5db" /></View>
-              <Text style={s.emptyTxt}>Aucune commande</Text>
-              <Text style={s.emptySub}>Vos commandes apparaîtront ici</Text>
-            </View>
-          ) : filtered.map(cmd => {
-            const cfg = STATUS_CONFIG[cmd.status] || STATUS_CONFIG.en_preparation;
-            const isLivree = cmd.status === 'livree';
-            const isFourniture = cmd.type === 'fourniture';
+      {/* Orders list */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadOrders} tintColor={PURPLE} />}
+        contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}
+      >
+        {filtered.length === 0 ? (
+          <View style={s.empty}>
+            <Text style={{ fontSize: 60 }}>📭</Text>
+            <Text style={s.emptyTxt}>Aucune commande</Text>
+            <Text style={s.emptySub}>Vos commandes apparaîtront ici</Text>
+          </View>
+        ) : (
+          filtered.map(order => {
+            const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.en_preparation;
+            const date = new Date(order.created_at).toLocaleDateString('fr-FR', {
+              day: '2-digit', month: 'short', year: 'numeric'
+            });
             return (
-              <View key={cmd.id} style={s.card}>
-                {/* Card header */}
-                <View style={s.cardTop}>
-                  <View style={[s.typeIcon, { backgroundColor: isFourniture ? '#f0fdf4' : '#eef2ff' }]}>
-                    {isFourniture ? <IconBook size={20} color={GREEN} /> : <IconBox size={20} color="#7c3aed" />}
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={s.cardTitle} numberOfLines={1}>
-                      {isFourniture ? (cmd.fourniture?.name || 'Fourniture') : 'Catalogue'}
-                    </Text>
-                    <Text style={s.cardDate}>{formatDate(cmd.created_at)}</Text>
-                  </View>
-                  <View style={[s.statusBadge, { backgroundColor: cfg.bg, borderColor: cfg.border }]}>
-                    <cfg.Icon size={12} color={cfg.color} />
-                    <Text style={[s.statusTxt, { color: cfg.color }]}>{cfg.label}</Text>
-                  </View>
-                </View>
+              <TouchableOpacity key={order.id} style={s.orderCard}
+                onPress={() => router.push({
+                  pathname: '/parent/recu',
+                  params: {
+                    order_id: order.id,
+                    qr_code: order.qr_token,
+                    total: order.total_price?.toString(),
+                    order_name: order.type === 'fourniture' ? 'Pack Fourniture' : 'Commande Boutique',
+                    phone: order.phone || '',
+                    address: order.address || '',
+                  }
+                } as any)}
+                activeOpacity={0.88}>
 
-                {/* Items */}
-                {cmd.items?.length > 0 && (
-                  <View style={s.itemsList}>
-                    {cmd.items.slice(0, 3).map((item: any, i: number) => (
-                      <View key={i} style={s.itemRow}>
-                        <View style={s.itemDot} />
-                        <Text style={s.itemName} numberOfLines={1}>{item.item_name}</Text>
-                        <Text style={s.itemPrice}>{Number(item.item_price).toFixed(2)} MAD</Text>
-                      </View>
-                    ))}
-                    {cmd.items.length > 3 && (
-                      <Text style={s.moreItems}>+{cmd.items.length - 3} autres articles</Text>
-                    )}
-                  </View>
-                )}
-
-                {/* Wrapping */}
-                {cmd.wrapping && (
-                  <View style={s.wrappingRow}>
-                    <Text style={s.wrappingTxt}>🛡️ Protection cahiers incluse</Text>
-                  </View>
-                )}
-
-                {/* Footer */}
-                <View style={s.cardFooter}>
-                  <View style={{ gap: 2 }}>
-                    {cmd.address && <Text style={s.addressTxt} numberOfLines={1}>📍 {cmd.address}</Text>}
-                    <Text style={s.totalTxt}>Total: <Text style={s.totalAmt}>{Number(cmd.total_price).toFixed(2)} MAD</Text></Text>
-                  </View>
-
-                  {/* QR button — غير للـ commandes en_attente */}
-                  {(cmd.status === 'en_attente' || isLivree) && cmd.qr_code && (
-                    <TouchableOpacity
-                      style={[s.qrBtn, isLivree && { backgroundColor: '#dcfce7', borderColor: '#86efac' }]}
-                      onPress={() => router.push({ pathname: '/parent/recu', params: { orderId: cmd.id } } as any)}
-                    >
-                      <IconQr size={16} color={isLivree ? GREEN : NAV} />
-                      <Text style={[s.qrBtnTxt, isLivree && { color: GREEN }]}>
-                        {isLivree ? 'Reçu' : 'QR Code'}
+                {/* Top row */}
+                <View style={s.orderTop}>
+                  <View style={s.orderLeft}>
+                    <View style={[s.orderTypeIcon, { backgroundColor: cfg.color + '20' }]}>
+                      <Text style={{ fontSize: 22 }}>
+                        {order.type === 'fourniture' ? '📚' : '🛍️'}
                       </Text>
-                    </TouchableOpacity>
-                  )}
+                    </View>
+                    <View>
+                      <Text style={s.orderType}>
+                        {order.type === 'fourniture' ? 'Pack Fourniture' : 'Boutique'}
+                      </Text>
+                      <Text style={s.orderDate}>{date}</Text>
+                    </View>
+                  </View>
+                  <View style={s.orderRight}>
+                    <Text style={s.orderPrice}>{Number(order.total_price || 0).toFixed(0)} DH</Text>
+                    <View style={[s.statusBadge, { backgroundColor: cfg.color + '20', borderColor: cfg.color + '50' }]}>
+                      <Text style={[s.statusTxt, { color: cfg.color }]}>{cfg.emoji} {cfg.label}</Text>
+                    </View>
+                  </View>
                 </View>
 
                 {/* Progress bar */}
-                <View style={s.progressWrap}>
-                  {['en_preparation', 'en_attente', 'livree'].map((st, i) => {
-                    const steps = ['en_preparation', 'en_attente', 'livree'];
-                    const currentIdx = steps.indexOf(cmd.status);
-                    const active = i <= currentIdx && cmd.status !== 'annulee';
-                    return (
-                      <View key={st} style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={[s.progressDot, active && s.progressDotActive, cmd.status === 'annulee' && s.progressDotCancelled]} />
-                        {i < 2 && <View style={[s.progressLine, active && i < currentIdx && s.progressLineActive]} />}
-                      </View>
-                    );
-                  })}
+                <StatusBar2 status={order.status} />
+
+                {/* Bottom */}
+                <View style={s.orderBottom}>
+                  {order.address && (
+                    <Text style={s.orderAddr} numberOfLines={1}>📍 {order.address}</Text>
+                  )}
+                  <View style={s.viewBtn}>
+                    <Text style={s.viewTxt}>Voir le reçu</Text>
+                    <IcoChevron s={16} c={PURPLE} />
+                  </View>
                 </View>
-                <View style={s.progressLabels}>
-                  <Text style={s.progressLabel}>Préparation</Text>
-                  <Text style={s.progressLabel}>Livraison</Text>
-                  <Text style={s.progressLabel}>Livrée</Text>
-                </View>
-              </View>
+              </TouchableOpacity>
             );
-          })}
-          <View style={{ height: 32 }} />
-        </ScrollView>
-      )}
+          })
+        )}
+      </ScrollView>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f7f8fc' },
-  header: { backgroundColor: NAV, paddingTop: 52, paddingBottom: 20, paddingHorizontal: 16, overflow: 'hidden' },
-  dec1: { position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(255,255,255,0.04)' },
-  dec2: { position: 'absolute', bottom: -30, left: -20, width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.03)' },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-  backBtn: { width: 40, height: 40, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 13, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
-  headerTitle: { fontSize: 20, fontWeight: '900', color: 'white' },
-  headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: '600', marginTop: 1 },
-  statsRow: { flexDirection: 'row', gap: 8 },
-  statBox: { flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 10, alignItems: 'center', gap: 3, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  statNum: { fontSize: 20, fontWeight: '900', color: 'white' },
-  statLbl: { fontSize: 9, color: 'rgba(255,255,255,0.55)', fontWeight: '700' },
-  filterScroll: { maxHeight: 52, backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  filterContent: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
-  filterBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: '#f3f4f6', borderWidth: 1.5, borderColor: '#e5e7eb' },
-  filterBtnActive: { backgroundColor: NAV, borderColor: NAV },
-  filterTxt: { fontSize: 12, fontWeight: '700', color: GRAY },
+  root: { flex: 1, backgroundColor: NAV },
+
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 54, paddingHorizontal: 18, paddingBottom: 16, backgroundColor: 'rgba(10,22,40,0.95)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  backBtn: { width: 42, height: 42, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 18, fontWeight: '900', color: 'white' },
+  headerBadge: { backgroundColor: PURPLE, borderRadius: 12, minWidth: 28, height: 28, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 8 },
+  headerBadgeTxt: { fontSize: 13, fontWeight: '900', color: 'white' },
+
+  filtersRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  filterBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  filterBtnActive: { backgroundColor: PURPLE, borderColor: PURPLE },
+  filterTxt: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.5)' },
   filterTxtActive: { color: 'white' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scroll: { padding: 16 },
-  empty: { alignItems: 'center', paddingVertical: 80, gap: 12 },
-  emptyIcon: { width: 90, height: 90, backgroundColor: '#f3f4f6', borderRadius: 28, justifyContent: 'center', alignItems: 'center' },
-  emptyTxt: { fontSize: 18, fontWeight: '900', color: NAV },
-  emptySub: { fontSize: 13, color: GRAY, fontWeight: '500' },
-  card: { backgroundColor: 'white', borderRadius: 20, padding: 14, marginBottom: 12, shadowColor: NAV, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3, borderWidth: 1, borderColor: 'rgba(15,35,86,0.06)' },
-  cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 },
-  typeIcon: { width: 44, height: 44, borderRadius: 13, justifyContent: 'center', alignItems: 'center' },
-  cardTitle: { fontSize: 15, fontWeight: '900', color: NAV },
-  cardDate: { fontSize: 11, color: GRAY, fontWeight: '500', marginTop: 2 },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, borderWidth: 1 },
-  statusTxt: { fontSize: 10, fontWeight: '800' },
-  itemsList: { backgroundColor: '#f7f8fc', borderRadius: 12, padding: 10, marginBottom: 10, gap: 6 },
-  itemRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  itemDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: NAV + '40' },
-  itemName: { flex: 1, fontSize: 12, color: NAV, fontWeight: '600' },
-  itemPrice: { fontSize: 12, fontWeight: '800', color: GREEN },
-  moreItems: { fontSize: 11, color: GRAY, fontWeight: '600', textAlign: 'center', paddingTop: 2 },
-  wrappingRow: { backgroundColor: '#fef3c7', borderRadius: 10, padding: 8, marginBottom: 10 },
-  wrappingTxt: { fontSize: 12, fontWeight: '700', color: ORANGE },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingTop: 10, marginBottom: 10 },
-  addressTxt: { fontSize: 11, color: GRAY, fontWeight: '500' },
-  totalTxt: { fontSize: 12, color: GRAY, fontWeight: '600' },
-  totalAmt: { fontSize: 14, fontWeight: '900', color: NAV },
-  qrBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#eef2ff', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#c7d2fe' },
-  qrBtnTxt: { fontSize: 12, fontWeight: '800', color: NAV },
-  progressWrap: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-  progressDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#e5e7eb', borderWidth: 2, borderColor: '#e5e7eb' },
-  progressDotActive: { backgroundColor: NAV, borderColor: NAV },
-  progressDotCancelled: { backgroundColor: RED, borderColor: RED },
-  progressLine: { flex: 1, height: 2, backgroundColor: '#e5e7eb' },
-  progressLineActive: { backgroundColor: NAV },
-  progressLabels: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 2 },
-  progressLabel: { fontSize: 9, color: GRAY, fontWeight: '600', flex: 1, textAlign: 'center' },
+
+  empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
+  emptyTxt: { fontSize: 18, fontWeight: '900', color: 'white' },
+  emptySub: { fontSize: 13, color: 'rgba(255,255,255,0.4)', fontWeight: '600' },
+
+  orderCard: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 22, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 5 },
+
+  orderTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  orderLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  orderTypeIcon: { width: 48, height: 48, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  orderType: { fontSize: 15, fontWeight: '900', color: 'white' },
+  orderDate: { fontSize: 11, color: 'rgba(255,255,255,0.45)', fontWeight: '600', marginTop: 2 },
+  orderRight: { alignItems: 'flex-end', gap: 6 },
+  orderPrice: { fontSize: 18, fontWeight: '900', color: GOLD },
+  statusBadge: { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1 },
+  statusTxt: { fontSize: 11, fontWeight: '800' },
+
+  orderBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
+  orderAddr: { fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: '600', flex: 1 },
+  viewBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  viewTxt: { fontSize: 12, fontWeight: '800', color: PURPLE },
 });

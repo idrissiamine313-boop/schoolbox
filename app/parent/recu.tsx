@@ -1,244 +1,219 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
-    ActivityIndicator, ScrollView, StatusBar,
+    Animated, ScrollView, Share, StatusBar,
     StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import Svg, { Circle, Line, Path, Polyline } from 'react-native-svg';
-import { supabase } from '../../lib/supabase';
+import Svg, { Path } from 'react-native-svg';
 
-const NAV = '#0f2356';
-const RED = '#e53e3e';
-const GREEN = '#059669';
-const ORANGE = '#d97706';
+const NAV = '#0a1628';
+const RED = '#ef4444';
+const GOLD = '#f59e0b';
+const GREEN = '#10b981';
+const PURPLE = '#8b5cf6';
 
-function IconBack({ size = 20, color = 'white' }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Polyline points="15 18 9 12 15 6" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" /></Svg>; }
-function IconCheck({ size = 40, color = GREEN }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} /><Polyline points="9 12 11 14 15 10" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" /></Svg>; }
-function IconClock({ size = 40, color = ORANGE }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} /><Path d="M12 6v6l4 2" stroke={color} strokeWidth={2} strokeLinecap="round" /></Svg>; }
-function IconLocation({ size = 14, color = NAV }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke={color} strokeWidth={2} /><Circle cx="12" cy="10" r="3" stroke={color} strokeWidth={2} /></Svg>; }
-function IconPhone({ size = 14, color = NAV }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.03 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>; }
-function IconCalendar({ size = 14, color = NAV }: any) { return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Line x1="16" y1="2" x2="16" y2="6" stroke={color} strokeWidth={2} strokeLinecap="round" /><Line x1="8" y1="2" x2="8" y2="6" stroke={color} strokeWidth={2} strokeLinecap="round" /><Polyline points="3 9 21 9" stroke={color} strokeWidth={2} strokeLinecap="round" /><Path d="M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" stroke={color} strokeWidth={2} strokeLinejoin="round" /></Svg>; }
+function IcoHome({ s = 22, c = 'white' }: any) {
+  return <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+    <Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M9 22V12h6v10" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>;
+}
+function IcoShare({ s = 20, c = 'white' }: any) {
+  return <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+    <Path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>;
+}
+function IcoOrders({ s = 20, c = 'white' }: any) {
+  return <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+    <Path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" stroke={c} strokeWidth={2} strokeLinecap="round" />
+  </Svg>;
+}
 
-const STATUS_CONFIG: any = {
-  en_preparation: { label: 'En préparation', color: ORANGE, bg: '#fef3c7', Icon: IconClock },
-  en_attente: { label: 'En attente de livraison', color: NAV, bg: '#e0e7ff', Icon: IconClock },
-  livree: { label: 'Livrée', color: GREEN, bg: '#dcfce7', Icon: IconCheck },
-  annulee: { label: 'Annulée', color: RED, bg: '#fee2e2', Icon: IconClock },
-};
-
-export default function RecuScreen() {
-  const { orderId } = useLocalSearchParams();
+export default function Recu() {
   const router = useRouter();
-  const [order, setOrder] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const params = useLocalSearchParams<{
+    order_id: string;
+    qr_code: string;
+    total: string;
+    order_name: string;
+    phone: string;
+    address: string;
+  }>();
 
-  useEffect(() => { loadOrder(); }, []);
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const checkAnim = useRef(new Animated.Value(0)).current;
 
-  async function loadOrder() {
-    const { data } = await supabase
-      .from('orders')
-      .select(`
-        id, status, type, total_price, wrapping, created_at,
-        address, phone, qr_code,
-        items:order_items(id, item_name, item_price, quantity, item_type),
-        fourniture:fournitures(id, name),
-        student:students(id, full_name, school:schools(name))
-      `)
-      .eq('id', orderId)
-      .single();
-    setOrder(data);
-    setLoading(false);
+  // الـ QR value — نتحققو منو
+  const qrValue = params.qr_code && params.qr_code.length > 3
+    ? params.qr_code
+    : params.order_id || 'SB-000000';
+
+  useEffect(() => {
+    saveToQRHistory();
+    Animated.sequence([
+      Animated.spring(scaleAnim, { toValue: 1, tension: 60, friction: 6, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+      Animated.spring(checkAnim, { toValue: 1, tension: 80, friction: 5, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  async function saveToQRHistory() {
+    try {
+      const existing = await AsyncStorage.getItem('qr_history');
+      const history = existing ? JSON.parse(existing) : [];
+      // تحققو ماكيتكررش نفس الـ order
+      const exists = history.find((h: any) => h.id === params.order_id);
+      if (!exists) {
+        history.unshift({
+          id: params.order_id,
+          qr_code: qrValue,
+          order_name: params.order_name,
+          total: params.total,
+          phone: params.phone,
+          address: params.address,
+          created_at: new Date().toISOString(),
+        });
+        await AsyncStorage.setItem('qr_history', JSON.stringify(history.slice(0, 50)));
+      }
+    } catch {}
   }
 
-  function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString('fr-FR', {
-      day: '2-digit', month: 'long', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
+  async function handleShare() {
+    try {
+      await Share.share({
+        message: `🎓 SchoolBox — Reçu de commande\n\n📦 ${params.order_name}\n💰 Total: ${params.total} DH\n📍 ${params.address}\n\n🔑 Code: ${qrValue}\n\nPrésentez ce code au livreur.`,
+      });
+    } catch {}
   }
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f7f8fc' }}>
-        <ActivityIndicator color={NAV} size="large" />
-      </View>
-    );
-  }
-
-  if (!order) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ color: NAV, fontWeight: '800' }}>Commande introuvable</Text>
-      </View>
-    );
-  }
-
-  const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.en_preparation;
-  const isFourniture = order.type === 'fourniture';
-  const itemsTotal = order.items?.reduce((sum: number, i: any) => sum + Number(i.item_price) * (i.quantity || 1), 0) || 0;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <View style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor={NAV} />
+    <View style={s.root}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: NAV }]} />
+      <View style={s.glowTop} />
+      <View style={s.glowBottom} />
 
-      {/* HEADER */}
-      <View style={s.header}>
-        <View style={s.dec1} /><View style={s.dec2} />
-        <View style={s.headerRow}>
-          <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><IconBack /></TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={s.headerTitle}>Reçu de commande</Text>
-            <Text style={s.headerSub}>#{order.id.slice(0, 8).toUpperCase()}</Text>
-          </View>
-        </View>
-      </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 50, alignItems: 'center', paddingTop: 60 }}
+      >
+        {/* Check animation */}
+        <Animated.View style={[s.checkCircle, { transform: [{ scale: scaleAnim }] }]}>
+          <Animated.View style={{ transform: [{ scale: checkAnim }] }}>
+            <Text style={{ fontSize: 50 }}>✅</Text>
+          </Animated.View>
+        </Animated.View>
 
-      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        <Animated.View style={{ opacity: fadeAnim, alignItems: 'center', width: '100%', paddingHorizontal: 24 }}>
+          <Text style={s.successTitle}>Commande confirmée !</Text>
+          <Text style={s.successSub}>{dateStr} à {timeStr}</Text>
 
-        {/* STATUS CARD */}
-        <View style={[s.statusCard, { backgroundColor: cfg.bg }]}>
-          <cfg.Icon size={44} color={cfg.color} />
-          <View style={{ flex: 1 }}>
-            <Text style={[s.statusLabel, { color: cfg.color }]}>{cfg.label}</Text>
-            <Text style={s.statusDate}>{formatDate(order.created_at)}</Text>
-          </View>
-        </View>
-
-        {/* QR CODE */}
-        {order.qr_code && order.status !== 'annulee' && (
+          {/* QR Card */}
           <View style={s.qrCard}>
-            <Text style={s.qrTitle}>Code de livraison</Text>
-            <Text style={s.qrSub}>Montrez ce QR au livreur pour confirmer la livraison</Text>
+            <View style={s.qrHeader}>
+              <Text style={s.qrHeaderTitle}>🎓 SchoolBox</Text>
+              <Text style={s.qrHeaderSub}>Code de livraison</Text>
+            </View>
+
             <View style={s.qrWrap}>
               <QRCode
-                value={order.qr_code}
+                value={qrValue}
                 size={200}
-                color={NAV}
                 backgroundColor="white"
+                color={NAV}
               />
             </View>
-            <View style={s.qrCodeTxt}>
-              <Text style={s.qrCodeVal}>{order.qr_code}</Text>
+
+            <View style={s.qrCodeRow}>
+              <Text style={s.qrCodeTxt}>{qrValue}</Text>
+            </View>
+
+            <View style={s.qrInfoBox}>
+              <Text style={s.qrInfoTxt}>⚠️ Ce code est valable une seule fois</Text>
+              <Text style={s.qrInfoTxt}>Présentez-le au livreur pour valider</Text>
             </View>
           </View>
-        )}
 
-        {/* INFOS ELEVE */}
-        {order.student && (
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Élève</Text>
-            <View style={s.infoRow}>
-              <Text style={s.infoLabel}>Nom complet</Text>
-              <Text style={s.infoVal}>{order.student.full_name}</Text>
-            </View>
-            {order.student.school && (
-              <View style={s.infoRow}>
-                <Text style={s.infoLabel}>École</Text>
-                <Text style={s.infoVal}>{order.student.school.name}</Text>
+          {/* Détails */}
+          <View style={s.detailCard}>
+            <Text style={s.detailTitle}>📋 Détails de la commande</Text>
+            {[
+              { label: '📦 Commande', value: params.order_name },
+              { label: '💰 Total', value: `${params.total} DH`, color: GOLD },
+              { label: '📞 Téléphone', value: params.phone },
+              { label: '📍 Adresse', value: params.address },
+            ].map((item, i) => (
+              <View key={i} style={[s.detailRow, i < 3 && s.detailBorder]}>
+                <Text style={s.detailLbl}>{item.label}</Text>
+                <Text style={[s.detailVal, item.color ? { color: item.color } : {}]} numberOfLines={2}>
+                  {item.value}
+                </Text>
               </View>
-            )}
+            ))}
           </View>
-        )}
 
-        {/* ARTICLES */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>
-            {isFourniture ? `Fourniture — ${order.fourniture?.name || ''}` : 'Catalogue'}
-          </Text>
-          {order.items?.map((item: any, i: number) => (
-            <View key={i} style={s.itemRow}>
-              <View style={s.itemDot} />
-              <Text style={s.itemName} numberOfLines={1}>{item.item_name}</Text>
-              <Text style={s.itemQty}>x{item.quantity || 1}</Text>
-              <Text style={s.itemPrice}>{Number(item.item_price).toFixed(2)} MAD</Text>
-            </View>
-          ))}
-          {order.wrapping && (
-            <View style={[s.itemRow, { backgroundColor: '#fef3c7', borderRadius: 10, padding: 8, marginTop: 4 }]}>
-              <Text style={{ fontSize: 14 }}>🛡️</Text>
-              <Text style={[s.itemName, { color: ORANGE }]}>Protection cahiers</Text>
-            </View>
-          )}
-        </View>
-
-        {/* LIVRAISON */}
-        {(order.address || order.phone) && (
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Livraison</Text>
-            {order.address && (
-              <View style={s.infoRow}>
-                <IconLocation size={14} /><Text style={s.infoLabel}>Adresse</Text>
-                <Text style={s.infoVal} numberOfLines={2}>{order.address}</Text>
-              </View>
-            )}
-            {order.phone && (
-              <View style={s.infoRow}>
-                <IconPhone size={14} /><Text style={s.infoLabel}>Téléphone</Text>
-                <Text style={s.infoVal}>{order.phone}</Text>
-              </View>
-            )}
+          {/* Actions */}
+          <View style={s.actionsRow}>
+            <TouchableOpacity style={s.actionBtn} onPress={handleShare} activeOpacity={0.85}>
+              <IcoShare s={18} c={PURPLE} />
+              <Text style={[s.actionTxt, { color: PURPLE }]}>Partager</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[s.actionBtn, s.actionBtnGold]}
+              onPress={() => router.push('/parent/commandes' as any)} activeOpacity={0.85}>
+              <IcoOrders s={18} c={GOLD} />
+              <Text style={[s.actionTxt, { color: GOLD }]}>Mes commandes</Text>
+            </TouchableOpacity>
           </View>
-        )}
 
-        {/* TOTAL */}
-        <View style={s.totalCard}>
-          <View style={s.totalRow}>
-            <Text style={s.totalLabel}>Sous-total articles</Text>
-            <Text style={s.totalVal}>{itemsTotal.toFixed(2)} MAD</Text>
-          </View>
-          {order.wrapping && (
-            <View style={s.totalRow}>
-              <Text style={s.totalLabel}>🛡️ Protection cahiers</Text>
-              <Text style={[s.totalVal, { color: ORANGE }]}>+inclus</Text>
-            </View>
-          )}
-          <View style={[s.totalRow, s.totalFinal]}>
-            <Text style={s.totalFinalLabel}>Total</Text>
-            <Text style={s.totalFinalVal}>{Number(order.total_price).toFixed(2)} MAD</Text>
-          </View>
-        </View>
-
-        <View style={{ height: 40 }} />
+          <TouchableOpacity style={s.homeBtn}
+            onPress={() => router.replace('/parent/home' as any)} activeOpacity={0.88}>
+            <IcoHome s={20} c="white" />
+            <Text style={s.homeTxt}>Retour à l'accueil</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </ScrollView>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f7f8fc' },
-  header: { backgroundColor: NAV, paddingTop: 52, paddingBottom: 20, paddingHorizontal: 16, overflow: 'hidden' },
-  dec1: { position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(255,255,255,0.04)' },
-  dec2: { position: 'absolute', bottom: -30, left: -20, width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.03)' },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  backBtn: { width: 40, height: 40, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 13, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
-  headerTitle: { fontSize: 20, fontWeight: '900', color: 'white' },
-  headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: '700', marginTop: 1 },
-  scroll: { padding: 16 },
-  statusCard: { borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 14 },
-  statusLabel: { fontSize: 16, fontWeight: '900' },
-  statusDate: { fontSize: 12, color: '#6b7280', fontWeight: '500', marginTop: 3 },
-  qrCard: { backgroundColor: 'white', borderRadius: 20, padding: 20, alignItems: 'center', marginBottom: 14, shadowColor: NAV, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3, borderWidth: 1, borderColor: 'rgba(15,35,86,0.06)' },
-  qrTitle: { fontSize: 17, fontWeight: '900', color: NAV, marginBottom: 6 },
-  qrSub: { fontSize: 12, color: '#6b7280', fontWeight: '500', textAlign: 'center', marginBottom: 20, lineHeight: 18 },
-  qrWrap: { padding: 16, backgroundColor: 'white', borderRadius: 16, borderWidth: 2, borderColor: '#e5e7eb', marginBottom: 14 },
-  qrCodeTxt: { backgroundColor: '#f7f8fc', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8, borderWidth: 1, borderColor: '#e5e7eb' },
-  qrCodeVal: { fontSize: 13, fontWeight: '800', color: NAV, letterSpacing: 2 },
-  section: { backgroundColor: 'white', borderRadius: 18, padding: 16, marginBottom: 12, shadowColor: NAV, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, borderWidth: 1, borderColor: 'rgba(15,35,86,0.05)' },
-  sectionTitle: { fontSize: 14, fontWeight: '900', color: NAV, marginBottom: 12, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  infoLabel: { fontSize: 12, color: '#6b7280', fontWeight: '600', width: 90 },
-  infoVal: { flex: 1, fontSize: 13, fontWeight: '700', color: NAV },
-  itemRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: '#f9fafb' },
-  itemDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: NAV + '40' },
-  itemName: { flex: 1, fontSize: 13, color: NAV, fontWeight: '600' },
-  itemQty: { fontSize: 12, color: '#6b7280', fontWeight: '700' },
-  itemPrice: { fontSize: 13, fontWeight: '800', color: GREEN },
-  totalCard: { backgroundColor: 'white', borderRadius: 18, padding: 16, marginBottom: 12, shadowColor: NAV, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, borderWidth: 1, borderColor: 'rgba(15,35,86,0.05)' },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
-  totalLabel: { fontSize: 13, color: '#6b7280', fontWeight: '600' },
-  totalVal: { fontSize: 13, fontWeight: '700', color: NAV },
-  totalFinal: { borderTopWidth: 1.5, borderTopColor: '#f3f4f6', marginTop: 6, paddingTop: 12 },
-  totalFinalLabel: { fontSize: 16, fontWeight: '900', color: NAV },
-  totalFinalVal: { fontSize: 20, fontWeight: '900', color: NAV },
+  root: { flex: 1, backgroundColor: NAV },
+  glowTop: { position: 'absolute', top: -100, left: '50%', marginLeft: -150, width: 300, height: 300, borderRadius: 150, backgroundColor: 'rgba(16,185,129,0.12)' },
+  glowBottom: { position: 'absolute', bottom: -80, right: -80, width: 250, height: 250, borderRadius: 125, backgroundColor: 'rgba(139,92,246,0.1)' },
+
+  checkCircle: { width: 100, height: 100, backgroundColor: 'rgba(16,185,129,0.15)', borderRadius: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 2, borderColor: 'rgba(16,185,129,0.3)' },
+  successTitle: { fontSize: 26, fontWeight: '900', color: 'white', marginBottom: 6, textAlign: 'center' },
+  successSub: { fontSize: 13, color: 'rgba(255,255,255,0.5)', fontWeight: '600', marginBottom: 28, textAlign: 'center' },
+
+  qrCard: { width: '100%', backgroundColor: 'white', borderRadius: 28, overflow: 'hidden', marginBottom: 16, shadowColor: GREEN, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 12 },
+  qrHeader: { backgroundColor: NAV, paddingVertical: 16, paddingHorizontal: 20, alignItems: 'center' },
+  qrHeaderTitle: { fontSize: 18, fontWeight: '900', color: 'white' },
+  qrHeaderSub: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2, fontWeight: '600' },
+  qrWrap: { padding: 28, alignItems: 'center', backgroundColor: 'white' },
+  qrCodeRow: { backgroundColor: '#f8fafc', paddingVertical: 12, paddingHorizontal: 20, alignItems: 'center' },
+  qrCodeTxt: { fontSize: 14, fontWeight: '900', color: NAV, letterSpacing: 1.5 },
+  qrInfoBox: { backgroundColor: '#fef3c7', padding: 14, alignItems: 'center', gap: 4 },
+  qrInfoTxt: { fontSize: 12, color: '#92400e', fontWeight: '700', textAlign: 'center' },
+
+  detailCard: { width: '100%', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 20, padding: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginBottom: 16, gap: 2 },
+  detailTitle: { fontSize: 15, fontWeight: '900', color: 'white', marginBottom: 12 },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingVertical: 10, gap: 10 },
+  detailBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.07)' },
+  detailLbl: { fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: '700', width: 110 },
+  detailVal: { fontSize: 13, fontWeight: '800', color: 'white', flex: 1, textAlign: 'right' },
+
+  actionsRow: { flexDirection: 'row', gap: 12, width: '100%', marginBottom: 12 },
+  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: 'rgba(139,92,246,0.12)', borderRadius: 16, paddingVertical: 14, borderWidth: 1.5, borderColor: 'rgba(139,92,246,0.3)' },
+  actionBtnGold: { backgroundColor: 'rgba(245,158,11,0.12)', borderColor: 'rgba(245,158,11,0.3)' },
+  actionTxt: { fontSize: 13, fontWeight: '800' },
+
+  homeBtn: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 16, paddingVertical: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
+  homeTxt: { fontSize: 15, fontWeight: '800', color: 'white' },
 });
