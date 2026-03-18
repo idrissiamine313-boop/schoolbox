@@ -315,7 +315,7 @@ export default function ParentHome() {
           .select('id,name,price,image_url,school_ids,level_ids')
           .eq('is_active', true)
           .order('created_at', { ascending: false });
-        setFournitures((data || []).slice(0, 6));
+        setFournitures((data || []).slice(0, 20));
     } catch {}
   }
 
@@ -325,7 +325,7 @@ export default function ParentHome() {
           .select('id,name,price,image_url,is_favoris')
           .eq('is_active', true)
           .order('created_at', { ascending: false });
-        setProduits((data || []).slice(0, 8));
+        setProduits((data || []).slice(0, 20));
     } catch {}
   }
 
@@ -335,7 +335,7 @@ export default function ParentHome() {
           .select('id,title,image_url,type')
           .eq('is_active', true)
           .order('created_at', { ascending: false });
-        setAnnonces((data || []).slice(0, 6));
+        setAnnonces((data || []).slice(0, 20));
     } catch {}
   }
 
@@ -489,9 +489,11 @@ export default function ParentHome() {
                       ? <Image source={{ uri: f.image_url }} style={s.productImage} /> 
                       : <View style={[s.productImage, s.imgPlaceholder]}><Text>📚</Text></View>
                     }
+                    {Number(f.price) > 0 && (
                     <View style={s.priceTag}>
                       <Text style={s.priceText}>{Number(f.price || 0).toFixed(0)} DH</Text>
                     </View>
+                    )}
                   </View>
                   <View style={s.productInfo}>
                     <Text style={[s.productTitle, isRTL && s.textRight]} numberOfLines={2}>{f.name}</Text>
@@ -558,7 +560,7 @@ const s = StyleSheet.create({
   rowReverse: { flexDirection: 'row-reverse' },
   textRight: { textAlign: 'right' },
   headerBg: { 
-    backgroundColor: 'red', paddingTop: 40, paddingBottom: 55,
+    backgroundColor: 'NAV', paddingTop: 40, paddingBottom: 55,
     paddingHorizontal: 20, borderBottomLeftRadius: 35, borderBottomRightRadius: 35,
     overflow: 'hidden', position: 'relative'
   },
