@@ -558,7 +558,7 @@ const s = StyleSheet.create({
   rowReverse: { flexDirection: 'row-reverse' },
   textRight: { textAlign: 'right' },
   headerBg: { 
-    backgroundColor: NAV, paddingTop: 40, paddingBottom: 55,
+    backgroundColor: 'red', paddingTop: 40, paddingBottom: 55,
     paddingHorizontal: 20, borderBottomLeftRadius: 35, borderBottomRightRadius: 35,
     overflow: 'hidden', position: 'relative'
   },
